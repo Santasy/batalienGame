@@ -10,6 +10,10 @@
 #include "tools.h"
 #include "gl_utils.h"
 #include "mesh.h"
+#include "alien.h"
+#include "arma.h"
+#include "prop.h"
+#include "piso.h"
 #include "GLDebugDrawer.hpp"
 
 #define GL_LOG_FILE "log/gl.log"
@@ -68,8 +72,8 @@ int main(){
 	int model_mat_location = glGetUniformLocation(shader_programme, "model");
 
 	/*---Mesh load---*/
-	mesh *ball = new mesh((char*)"mesh/ball.obj");
-	mesh *terrain = new mesh((char*)"mesh/piso.obj");
+	alien *ball = new alien((char*)"mesh/Alien.obj");
+	piso *terrain = new piso((char*)"mesh/MapaSimple.obj");
 
 	/*---Physic Compound---*/
 	btDefaultCollisionConfiguration *collisionConfiguration = new btDefaultCollisionConfiguration();
