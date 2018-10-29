@@ -14,6 +14,7 @@
 #include "arma.h"
 #include "prop.h"
 #include "piso.h"
+#include "bala.h"
 #include "GLDebugDrawer.hpp"
 
 #define GL_LOG_FILE "log/gl.log"
@@ -27,13 +28,13 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow *window);
 
 /*---Window Properties---*/
-int g_gl_width  =  800;
-int g_gl_height =  600;
+int g_gl_width  =  1080;
+int g_gl_height =  800;
 GLFWwindow *g_window = NULL;
 
 /*---Camera Properties---*/
-glm::vec3 cameraPos   = glm::vec3(0.0f, 0.0f, 13.0f);
-glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
+glm::vec3 cameraPos   = glm::vec3(0.0f, 12.0f, 15.0f);
+glm::vec3 cameraFront = glm::vec3(0.0f, -2.0f, -1.0f);
 glm::vec3 cameraUp    = glm::vec3(0.0f, 1.0f, 0.0f);
 
 bool firstMouse = true;
@@ -74,6 +75,8 @@ int main(){
 	/*---Mesh load---*/
 	alien *ball = new alien((char*)"mesh/Alien.obj");
 	piso *terrain = new piso((char*)"mesh/MapaSimple.obj");
+	bala *balax = new bala((char*)"mesh/bala.obj");
+
 
 	/*---Physic Compound---*/
 	btDefaultCollisionConfiguration *collisionConfiguration = new btDefaultCollisionConfiguration();
@@ -83,12 +86,23 @@ int main(){
 	btDiscreteDynamicsWorld *dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher, overlappingPairCache, solver, collisionConfiguration);
 	dynamicsWorld->setGravity(btVector3(0, -9.8f, 0));
 
+	btCollisionShape *balaxShape = new btSphereShape(btScalar(0.5));
 	btCollisionShape *ballShape = new btSphereShape(btScalar(1.));
-  btCollisionShape *terrainShape = new btBoxShape(btVector3(5, 0.05f, 5));
+  	btCollisionShape *terrainShape = new btBoxShape(btVector3(5, 0.05f, 5));
+
+  	//Desprender bala
+  	//balax->setPosition(glm::vec3(10,10,15));
+  	//balax->setFileName("model");
+  	//printf("matloc %i\n", balax->getFileName());
+
+  	btTransform balaxTransform;
+	balaxTransform.setIdentity();
+	balaxTransform.setOrigin(btVector3(3, 0, 5));
+	btScalar balaxMass(100);
 
 	btTransform ballTransform;
 	ballTransform.setIdentity();
-	ballTransform.setOrigin(btVector3(0, 5, 5));
+	ballTransform.setOrigin(btVector3(3, 5, -3));
 	btScalar ballMass(100);
 
 	btTransform terrainTransform;
@@ -97,25 +111,38 @@ int main(){
 	btScalar terrainMass(0.);
 
 	bool isDynamicBall = (ballMass != 0.0f);
+	bool isDynamicBalax = (balaxMass != 0.0f);
 
+	btVector3 localInertiaBalax(1,0,0);
 	btVector3 localInertiaBall(1, 0, 0);
-  btVector3 localInertiaTerrain(1, 0, 0);
+  	btVector3 localInertiaTerrain(1, 0, 0);
 
-	if(isDynamicBall)
+	if(isDynamicBall){
 		ballShape->calculateLocalInertia(ballMass, localInertiaBall);
+	}
+	if(isDynamicBalax){
+		balaxShape->calculateLocalInertia(balaxMass, localInertiaBall);
+	}
 
 	btDefaultMotionState *ballMotionState = new btDefaultMotionState(ballTransform);
 	btRigidBody::btRigidBodyConstructionInfo ballRbInfo(ballMass, ballMotionState, ballShape, localInertiaBall);
 	btRigidBody *bodyBall = new btRigidBody(ballRbInfo);
+
+	btDefaultMotionState *balaxMotionState = new btDefaultMotionState(balaxTransform);
+	btRigidBody::btRigidBodyConstructionInfo balaxRbInfo(balaxMass, balaxMotionState, balaxShape, localInertiaBalax);
+	btRigidBody *bodyBalax = new btRigidBody(balaxRbInfo);
 
 	btDefaultMotionState *terrainMotionState = new btDefaultMotionState(terrainTransform);
 	btRigidBody::btRigidBodyConstructionInfo terrainRbInfo(terrainMass, terrainMotionState, terrainShape, localInertiaTerrain);
 	btRigidBody *bodyTerrain = new btRigidBody(terrainRbInfo);
 
 	bodyBall->setActivationState(DISABLE_DEACTIVATION);
+	bodyBalax->setActivationState(DISABLE_DEACTIVATION);
 
 	dynamicsWorld->addRigidBody(bodyBall);
-  dynamicsWorld->addRigidBody(bodyTerrain);
+	dynamicsWorld->addRigidBody(bodyTerrain);
+    dynamicsWorld->addRigidBody(bodyBalax);
+
 
 	/*---Debuger---*/
 	GLDebugDrawer *debug = new GLDebugDrawer();
@@ -160,6 +187,12 @@ int main(){
 		trans.getOpenGLMatrix(&aux[0][0]);
 		terrain->setModelMatrix(aux);
 		terrain->draw(model_mat_location);
+
+		bodyBalax->getMotionState()->getWorldTransform(trans); // Se guarda la informacion de transformaciones de bodyBall en trans
+
+		trans.getOpenGLMatrix(&aux[0][0]);
+		balax->setModelMatrix(aux);
+		balax->draw(model_mat_location);
 
 		dynamicsWorld->debugDrawWorld();
 		debug->drawLines();

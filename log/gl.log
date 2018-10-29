@@ -1,7 +1,7 @@
-GL_LOG_FILE log. local time Sun Oct 28 19:46:02 2018
+GL_LOG_FILE log. local time Mon Oct 29 02:35:43 2018
 
-Starting GLFW 3.1.2 X11 GLX clock_gettime /dev/js XI Xf86vm sharedRenderer: llvmpipe (LLVM 5.0, 128 bits)
-Version: 3.0 Mesa 17.2.8
+Starting GLFW 3.1.2 X11 GLX clock_gettime /dev/js XI Xf86vm sharedRenderer: Mesa DRI Intel(R) Ivybridge Mobile 
+Version: 3.0 Mesa 18.0.5
 Creating shader from shaders/vShader.glsl...
 Shader compiled. Index 1
 Creating shader from shaders/fShader.glsl...
