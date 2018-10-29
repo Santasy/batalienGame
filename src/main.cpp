@@ -88,14 +88,14 @@ int main(){
 
 	btCollisionShape *balaxShape = new btSphereShape(btScalar(0.5));
 	btCollisionShape *ballShape = new btSphereShape(btScalar(1.));
-  	btCollisionShape *terrainShape = new btBoxShape(btVector3(5, 0.05f, 5));
+	btCollisionShape *terrainShape = new btBoxShape(btVector3(5, 0.05f, 5));
 
-  	//Desprender bala
-  	//balax->setPosition(glm::vec3(10,10,15));
-  	//balax->setFileName("model");
-  	//printf("matloc %i\n", balax->getFileName());
+	//Desprender bala
+	//balax->setPosition(glm::vec3(10,10,15));
+	//balax->setFileName("model");
+	//printf("matloc %i\n", balax->getFileName());
 
-  	btTransform balaxTransform;
+	btTransform balaxTransform;
 	balaxTransform.setIdentity();
 	balaxTransform.setOrigin(btVector3(3, 0, 5));
 	btScalar balaxMass(100);
@@ -113,9 +113,9 @@ int main(){
 	bool isDynamicBall = (ballMass != 0.0f);
 	bool isDynamicBalax = (balaxMass != 0.0f);
 
-	btVector3 localInertiaBalax(1,0,0);
+	btVector3 localInertiaBalax(1, 0, 0);
 	btVector3 localInertiaBall(1, 0, 0);
-  	btVector3 localInertiaTerrain(1, 0, 0);
+  btVector3 localInertiaTerrain(1, 0, 0);
 
 	if(isDynamicBall){
 		ballShape->calculateLocalInertia(ballMass, localInertiaBall);
@@ -141,7 +141,7 @@ int main(){
 
 	dynamicsWorld->addRigidBody(bodyBall);
 	dynamicsWorld->addRigidBody(bodyTerrain);
-    dynamicsWorld->addRigidBody(bodyBalax);
+	dynamicsWorld->addRigidBody(bodyBalax);
 
 
 	/*---Debuger---*/
@@ -176,20 +176,20 @@ int main(){
 
 		btTransform trans;
 
-		bodyBall->getMotionState()->getWorldTransform(trans); // Se guarda la informacion de transformaciones de bodyBall en trans
-
+		bodyBall->getMotionState()->getWorldTransform(trans);
+		
 		trans.getOpenGLMatrix(&aux[0][0]);
 		ball->setModelMatrix(aux);
 		ball->draw(model_mat_location);
 
-		bodyTerrain->getMotionState()->getWorldTransform(trans); // Se guarda la informacion de transformaciones de bodyBall en trans
+		bodyTerrain->getMotionState()->getWorldTransform(trans);
 
 		trans.getOpenGLMatrix(&aux[0][0]);
 		terrain->setModelMatrix(aux);
 		terrain->draw(model_mat_location);
 
-		bodyBalax->getMotionState()->getWorldTransform(trans); // Se guarda la informacion de transformaciones de bodyBall en trans
-
+		bodyBalax->getMotionState()->getWorldTransform(trans); 
+		
 		trans.getOpenGLMatrix(&aux[0][0]);
 		balax->setModelMatrix(aux);
 		balax->draw(model_mat_location);
@@ -227,7 +227,7 @@ void processInput(GLFWwindow *window){
 
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos){
-	if (firstMouse){
+	if(firstMouse){
 		lastX = xpos;
 		lastY = ypos;
 		firstMouse = false;

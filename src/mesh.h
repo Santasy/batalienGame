@@ -4,7 +4,7 @@
 #include <glm/glm.hpp>
 
 class mesh{
-	private:
+	protected:
 		GLuint vao, vbo;
 		int numVertices;
 		glm::vec3 position;
