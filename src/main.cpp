@@ -25,7 +25,7 @@
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
-int processInput(GLFWwindow *window);
+void processInput(GLFWwindow *window);
 
 /*---Window Properties---*/
 int g_gl_width  =  1080;
@@ -36,6 +36,8 @@ GLFWwindow *g_window = NULL;
 glm::vec3 cameraPos   = glm::vec3(0.0f, 12.0f, 15.0f);
 glm::vec3 cameraFront = glm::vec3(0.0f, -2.0f, -1.0f);
 glm::vec3 cameraUp    = glm::vec3(0.0f, 1.0f, 0.0f);
+
+//
 
 bool firstMouse = true;
 float yaw   = -90.0f;
@@ -75,7 +77,7 @@ int main(){
 	/*---Mesh load---*/
 	alien *ball = new alien((char*)"mesh/Alien.obj");
 	piso *terrain = new piso((char*)"mesh/MapaSimple.obj");
-	bala *balax = new bala((char*)"mesh/bala.obj");
+	bala *balax = new bala((char*)"mesh/balaxx.obj");
 
 
 	/*---Physic Compound---*/
@@ -93,10 +95,6 @@ int main(){
 	btCollisionShape *ballShape = new btSphereShape(btScalar(1.));
 	btCollisionShape *terrainShape = new btBoxShape(btVector3(5, 0.05f, 5));
 
-	//Desprender bala
-	//balax->setPosition(glm::vec3(10,10,15));
-	//balax->setFileName("model");
-	//printf("matloc %i\n", balax->getFileName());
 
 	btTransform balaxTransform;
 	balaxTransform.setIdentity();
@@ -195,15 +193,10 @@ int main(){
 		terrain->draw(model_mat_location);
 
 		bodyBalax->getMotionState()->getWorldTransform(trans); 
-		
 		trans.getOpenGLMatrix(&aux[0][0]);
 		balax->setModelMatrix(aux);
 		balax->draw(model_mat_location);
-		if(processInput(g_window)==50){
-			trans.getOpenGLMatrix(&aux[0][0]);
-			balax->setModelMatrix(aux);
-			balax->draw(model_mat_location);
-		}
+		
 
 		dynamicsWorld->debugDrawWorld();
 		debug->drawLines();
@@ -222,7 +215,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height){
 	glViewport(0, 0, width, height);
 }
 
-int processInput(GLFWwindow *window){
+void processInput(GLFWwindow *window){
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
 
@@ -236,7 +229,7 @@ int processInput(GLFWwindow *window){
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
 		cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
 	if (glfwGetKey(window, GLFW_KEY_J) == GLFW_PRESS){
-		return 50;
+		//return 50;
 	}	
 }
 
