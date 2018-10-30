@@ -25,7 +25,7 @@
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
-void processInput(GLFWwindow *window);
+int processInput(GLFWwindow *window);
 
 /*---Window Properties---*/
 int g_gl_width  =  1080;
@@ -84,9 +84,12 @@ int main(){
 	btBroadphaseInterface *overlappingPairCache = new btDbvtBroadphase();
 	btSequentialImpulseConstraintSolver *solver = new btSequentialImpulseConstraintSolver;
 	btDiscreteDynamicsWorld *dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher, overlappingPairCache, solver, collisionConfiguration);
-	dynamicsWorld->setGravity(btVector3(0, -9.8f, 0));
+	btDiscreteDynamicsWorld *dynamicsWorld2 = new btDiscreteDynamicsWorld(dispatcher, overlappingPairCache, solver, collisionConfiguration);
 
-	btCollisionShape *balaxShape = new btSphereShape(btScalar(0.5));
+	dynamicsWorld->setGravity(btVector3(0, -9.8f, 0));
+	dynamicsWorld2->setGravity(btVector3(0, 0, -19.0f));
+
+	btCollisionShape *balaxShape = new btSphereShape(btScalar(0.4));
 	btCollisionShape *ballShape = new btSphereShape(btScalar(1.));
 	btCollisionShape *terrainShape = new btBoxShape(btVector3(5, 0.05f, 5));
 
@@ -97,7 +100,7 @@ int main(){
 
 	btTransform balaxTransform;
 	balaxTransform.setIdentity();
-	balaxTransform.setOrigin(btVector3(3, 0, 5));
+	balaxTransform.setOrigin(btVector3(3, 2, 3));
 	btScalar balaxMass(100);
 
 	btTransform ballTransform;
@@ -141,7 +144,7 @@ int main(){
 
 	dynamicsWorld->addRigidBody(bodyBall);
 	dynamicsWorld->addRigidBody(bodyTerrain);
-	dynamicsWorld->addRigidBody(bodyBalax);
+	dynamicsWorld2->addRigidBody(bodyBalax);
 
 
 	/*---Debuger---*/
@@ -156,12 +159,15 @@ int main(){
 
 	while (!glfwWindowShouldClose(g_window)){
 		dynamicsWorld->stepSimulation(1.0f / 60.0f, 10);
+		dynamicsWorld2->stepSimulation(1.0f / 60.0f, 10);
+
 
 		float currentFrame = glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 
 		processInput(g_window);
+			
 
 		glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -193,8 +199,15 @@ int main(){
 		trans.getOpenGLMatrix(&aux[0][0]);
 		balax->setModelMatrix(aux);
 		balax->draw(model_mat_location);
+		if(processInput(g_window)==50){
+			trans.getOpenGLMatrix(&aux[0][0]);
+			balax->setModelMatrix(aux);
+			balax->draw(model_mat_location);
+		}
 
 		dynamicsWorld->debugDrawWorld();
+		debug->drawLines();
+		dynamicsWorld2->debugDrawWorld();
 		debug->drawLines();
 
 		glfwSwapBuffers(g_window);
@@ -209,7 +222,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height){
 	glViewport(0, 0, width, height);
 }
 
-void processInput(GLFWwindow *window){
+int processInput(GLFWwindow *window){
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
 
@@ -222,6 +235,9 @@ void processInput(GLFWwindow *window){
 		cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
 		cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+	if (glfwGetKey(window, GLFW_KEY_J) == GLFW_PRESS){
+		return 50;
+	}	
 }
 
 
