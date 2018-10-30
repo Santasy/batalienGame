@@ -257,24 +257,27 @@ void processInput(GLFWwindow *window, btRigidBody *player){
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
 		player->applyCentralForce(btVector3(30.0,0.,0.));
 	/*-----------JoystickInputs----------*/
-	int axesCount;
-	const float *axes = glfwGetJoystickAxes(GLFW_JOYSTICK_1, &axesCount);
-	if (axes[0]<(-0.3))
-		player->applyCentralForce(btVector3(-30.0,0.,0.));
-	if (axes[0]>(0.3))
-		player->applyCentralForce(btVector3(30.0,0.,0.));
-	if (axes[1]<(-0.3))
-		player->applyCentralForce(btVector3(0.,0.,-30.0));
-	if (axes[1]>(0.3))
-		player->applyCentralForce(btVector3(0.,0.,30.0));
-	if (axes[4]>(0.3))
-		cameraPos -= cameraSpeed * cameraFront;
-	if (axes[4]<(-0.3))
-		cameraPos += cameraSpeed * cameraFront;
-	if (axes[3]>(0.3))
-		cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
-	if (axes[3]<(-0.3))
-		cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+	int present = glfwJoystickPresent(GLFW_JOYSTICK_1);
+	if(present==1){
+		int axesCount;
+		const float *axes = glfwGetJoystickAxes(GLFW_JOYSTICK_1, &axesCount);
+		if (axes[0]<(-0.3))
+			player->applyCentralForce(btVector3(-30.0,0.,0.));
+		if (axes[0]>(0.3))
+			player->applyCentralForce(btVector3(30.0,0.,0.));
+		if (axes[1]<(-0.3))
+			player->applyCentralForce(btVector3(0.,0.,-30.0));
+		if (axes[1]>(0.3))
+			player->applyCentralForce(btVector3(0.,0.,30.0));
+		if (axes[4]>(0.3))
+			cameraPos -= cameraSpeed * cameraFront;
+		if (axes[4]<(-0.3))
+			cameraPos += cameraSpeed * cameraFront;
+		if (axes[3]>(0.3))
+			cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+		if (axes[3]<(-0.3))
+			cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+		}
 	}
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos){
