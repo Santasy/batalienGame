@@ -154,6 +154,25 @@ int main(){
 	glm::mat4 aux;
 
 	while (!glfwWindowShouldClose(g_window)){
+
+		/*---JoystickTEST-----GastonciñoTrabajan2*/
+
+			int present = glfwJoystickPresent(GLFW_JOYSTICK_1);
+			/*std::cout<<"Joystick1 status: "<<present<<std::endl;
+			if(present==1){
+				int axesCount;
+				const float *axes = glfwGetJoystickAxes(GLFW_JOYSTICK_1, &axesCount);
+				std::cout<<"Number of axes available: "<<axesCount<<std::endl;
+				std::cout<<"Left Stick X Axis: "<<axes[0]<<std::endl;
+				std::cout<<"Left Stick Y Axis: "<<axes[1]<<std::endl;
+				std::cout<<"Right Stick X Axis: "<<axes[4]<<std::endl;
+				std::cout<<"Right Stick Y Axis: "<<axes[3]<<std::endl;
+				std::cout<<"Left Trigger Axis: "<<axes[2]<<std::endl;
+				std::cout<<"Right Trigger Axis: "<<axes[5]<<std::endl;
+			}*/
+
+		/*---------------*/
+
 		dynamicsWorld->stepSimulation(1.0f / 60.0f, 10);
 		dynamicsWorld2->stepSimulation(1.0f / 60.0f, 10);
 
@@ -214,28 +233,48 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height){
 }
 
 void processInput(GLFWwindow *window, btRigidBody *player){
+	/*------------------UI------------------*/
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
-	
-	/*---Camara---*/
 	float cameraSpeed = 2.5 * deltaTime;
-	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+	/*--------------CameraKeyboard-------------*/
+	if (glfwGetKey(window, GLFW_KEY_I) == GLFW_PRESS)
 		cameraPos += cameraSpeed * cameraFront;
-	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+	if (glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS)
 		cameraPos -= cameraSpeed * cameraFront;
-	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+	if (glfwGetKey(window, GLFW_KEY_J) == GLFW_PRESS)
 		cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
-	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+	if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS)
 		cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
-	
-	/*---Player---*/
-	if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
-		player->applyForce(btVector3(100,0,0), btVector3(0,1,0));
-	if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
-		player->applyForce(btVector3(-100,0,0), btVector3(0,1,0));	
-}
-
-
+	/*--------------PlayerKeyboard------------*/
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+		player->applyCentralForce(btVector3(0.,0.,-0.1));
+	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+		player->applyCentralForce(btVector3(0.,0.,0.1));
+	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+		player->applyCentralForce(btVector3(-0.1,0.,0.));
+	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+		player->applyCentralForce(btVector3(0.1,0.,0.));
+	/*-----------JoystickInputs----------*/
+	int axesCount;
+	const float *axes = glfwGetJoystickAxes(GLFW_JOYSTICK_1, &axesCount);
+	if (axes[0]<(-0.3))
+		player->applyCentralForce(btVector3(-0.1,0.,0.));
+	if (axes[0]>(0.3))
+		player->applyCentralForce(btVector3(0.1,0.,0.));
+	if (axes[1]<(-0.3))
+		player->applyCentralForce(btVector3(0.,0.,-0.1));
+	if (axes[1]>(0.3))
+		player->applyCentralForce(btVector3(0.,0.,0.1));
+	if (axes[4]>(0.3))
+		cameraPos -= cameraSpeed * cameraFront;
+	if (axes[4]<(-0.3))
+		cameraPos += cameraSpeed * cameraFront;
+	if (axes[3]>(0.3))
+		cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+	if (axes[3]<(-0.3))
+		cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+	}
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos){
 	if(firstMouse){

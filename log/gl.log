@@ -1,7 +1,7 @@
-GL_LOG_FILE log. local time Mon Oct 29 23:39:41 2018
+GL_LOG_FILE log. local time Tue Oct 30 08:22:00 2018
 
-Starting GLFW 3.1.2 X11 GLX clock_gettime /dev/js XI Xf86vm sharedRenderer: Mesa DRI Intel(R) Ivybridge Mobile 
-Version: 3.0 Mesa 18.0.5
+Starting GLFW 3.2.1 X11 GLX EGL clock_gettime /dev/js Xf86vm sharedRenderer: GeForce GTX 950M/PCIe/SSE2
+Version: 4.6.0 NVIDIA 390.87
 Creating shader from shaders/vShader.glsl...
 Shader compiled. Index 1
 Creating shader from shaders/fShader.glsl...
