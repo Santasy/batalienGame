@@ -102,7 +102,7 @@ int main(){
 	btTransform alien1Transform;
 	alien1Transform.setIdentity();
 	alien1Transform.setOrigin(btVector3(3, 5, -3));
-	btScalar alien1Mass(10);
+	btScalar alien1Mass(1);
 
 	btTransform terrainTransform;
 	terrainTransform.setIdentity();
@@ -214,12 +214,13 @@ int main(){
 		balax->setModelMatrix(aux);
 		balax->draw(model_mat_location);
 		
-
+		/*
 		dynamicsWorld->debugDrawWorld();
 		debug->drawLines();
 		dynamicsWorld2->debugDrawWorld();
 		debug->drawLines();
-
+		*/
+	
 		glfwSwapBuffers(g_window);
 		glfwPollEvents();
 	}
@@ -248,13 +249,13 @@ void processInput(GLFWwindow *window, btRigidBody *player){
 		cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
 	/*--------------PlayerKeyboard------------*/
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-		player->applyCentralForce(btVector3(0.,0.,-0.1));
+		player->applyCentralForce(btVector3(0.,0.,-30.0));
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-		player->applyCentralForce(btVector3(0.,0.,0.1));
+		player->applyCentralForce(btVector3(0.,0.,30.0));
 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-		player->applyCentralForce(btVector3(-0.1,0.,0.));
+		player->applyCentralForce(btVector3(-30.0,0.,0.));
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-		player->applyCentralForce(btVector3(0.1,0.,0.));
+		player->applyCentralForce(btVector3(30.0,0.,0.));
 	/*-----------JoystickInputs----------*/
 	int axesCount;
 	const float *axes = glfwGetJoystickAxes(GLFW_JOYSTICK_1, &axesCount);
