@@ -102,7 +102,7 @@ int main(){
 	btTransform alien1Transform;
 	alien1Transform.setIdentity();
 	alien1Transform.setOrigin(btVector3(3, 5, -3));
-	btScalar alien1Mass(1);
+	btScalar alien1Mass(5);
 
 	btTransform terrainTransform;
 	terrainTransform.setIdentity();
@@ -220,7 +220,7 @@ int main(){
 		dynamicsWorld2->debugDrawWorld();
 		debug->drawLines();
 		*/
-	
+
 		glfwSwapBuffers(g_window);
 		glfwPollEvents();
 	}
@@ -260,13 +260,13 @@ void processInput(GLFWwindow *window, btRigidBody *player){
 	int axesCount;
 	const float *axes = glfwGetJoystickAxes(GLFW_JOYSTICK_1, &axesCount);
 	if (axes[0]<(-0.3))
-		player->applyCentralForce(btVector3(-0.1,0.,0.));
+		player->applyCentralForce(btVector3(-30.0,0.,0.));
 	if (axes[0]>(0.3))
-		player->applyCentralForce(btVector3(0.1,0.,0.));
+		player->applyCentralForce(btVector3(30.0,0.,0.));
 	if (axes[1]<(-0.3))
-		player->applyCentralForce(btVector3(0.,0.,-0.1));
+		player->applyCentralForce(btVector3(0.,0.,-30.0));
 	if (axes[1]>(0.3))
-		player->applyCentralForce(btVector3(0.,0.,0.1));
+		player->applyCentralForce(btVector3(0.,0.,30.0));
 	if (axes[4]>(0.3))
 		cameraPos -= cameraSpeed * cameraFront;
 	if (axes[4]<(-0.3))
