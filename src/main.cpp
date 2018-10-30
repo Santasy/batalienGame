@@ -25,7 +25,7 @@
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
-void processInput(GLFWwindow *window);
+void processInput(GLFWwindow *window, btRigidBody *player);
 
 /*---Window Properties---*/
 int g_gl_width  =  1080;
@@ -36,8 +36,6 @@ GLFWwindow *g_window = NULL;
 glm::vec3 cameraPos   = glm::vec3(0.0f, 12.0f, 15.0f);
 glm::vec3 cameraFront = glm::vec3(0.0f, -2.0f, -1.0f);
 glm::vec3 cameraUp    = glm::vec3(0.0f, 1.0f, 0.0f);
-
-//
 
 bool firstMouse = true;
 float yaw   = -90.0f;
@@ -75,7 +73,7 @@ int main(){
 	int model_mat_location = glGetUniformLocation(shader_programme, "model");
 
 	/*---Mesh load---*/
-	alien *ball = new alien((char*)"mesh/Alien.obj");
+	alien *alien1 = new alien((char*)"mesh/Alien.obj");
 	piso *terrain = new piso((char*)"mesh/MapaSimple.obj");
 	bala *balax = new bala((char*)"mesh/balaxx.obj");
 
@@ -92,7 +90,7 @@ int main(){
 	dynamicsWorld2->setGravity(btVector3(0, 0, -19.0f));
 
 	btCollisionShape *balaxShape = new btSphereShape(btScalar(0.4));
-	btCollisionShape *ballShape = new btSphereShape(btScalar(1.));
+	btCollisionShape *alien1Shape = new btSphereShape(btScalar(1.));
 	btCollisionShape *terrainShape = new btBoxShape(btVector3(5, 0.05f, 5));
 
 
@@ -101,33 +99,33 @@ int main(){
 	balaxTransform.setOrigin(btVector3(3, 2, 3));
 	btScalar balaxMass(100);
 
-	btTransform ballTransform;
-	ballTransform.setIdentity();
-	ballTransform.setOrigin(btVector3(3, 5, -3));
-	btScalar ballMass(100);
+	btTransform alien1Transform;
+	alien1Transform.setIdentity();
+	alien1Transform.setOrigin(btVector3(3, 5, -3));
+	btScalar alien1Mass(10);
 
 	btTransform terrainTransform;
 	terrainTransform.setIdentity();
 	terrainTransform.setOrigin(btVector3(0, 0, 0));
 	btScalar terrainMass(0.);
 
-	bool isDynamicBall = (ballMass != 0.0f);
+	bool isDynamicAlien1 = (alien1Mass != 0.0f);
 	bool isDynamicBalax = (balaxMass != 0.0f);
 
 	btVector3 localInertiaBalax(1, 0, 0);
-	btVector3 localInertiaBall(1, 0, 0);
+	btVector3 localInertiaAlien1(1, 0, 0);
   btVector3 localInertiaTerrain(1, 0, 0);
 
-	if(isDynamicBall){
-		ballShape->calculateLocalInertia(ballMass, localInertiaBall);
+	if(isDynamicAlien1){
+		alien1Shape->calculateLocalInertia(alien1Mass, localInertiaAlien1);
 	}
 	if(isDynamicBalax){
-		balaxShape->calculateLocalInertia(balaxMass, localInertiaBall);
+		balaxShape->calculateLocalInertia(balaxMass, localInertiaAlien1);
 	}
 
-	btDefaultMotionState *ballMotionState = new btDefaultMotionState(ballTransform);
-	btRigidBody::btRigidBodyConstructionInfo ballRbInfo(ballMass, ballMotionState, ballShape, localInertiaBall);
-	btRigidBody *bodyBall = new btRigidBody(ballRbInfo);
+	btDefaultMotionState *alien1MotionState = new btDefaultMotionState(alien1Transform);
+	btRigidBody::btRigidBodyConstructionInfo alien1RbInfo(alien1Mass, alien1MotionState, alien1Shape, localInertiaAlien1);
+	btRigidBody *bodyAlien1 = new btRigidBody(alien1RbInfo);
 
 	btDefaultMotionState *balaxMotionState = new btDefaultMotionState(balaxTransform);
 	btRigidBody::btRigidBodyConstructionInfo balaxRbInfo(balaxMass, balaxMotionState, balaxShape, localInertiaBalax);
@@ -137,10 +135,10 @@ int main(){
 	btRigidBody::btRigidBodyConstructionInfo terrainRbInfo(terrainMass, terrainMotionState, terrainShape, localInertiaTerrain);
 	btRigidBody *bodyTerrain = new btRigidBody(terrainRbInfo);
 
-	bodyBall->setActivationState(DISABLE_DEACTIVATION);
+	bodyAlien1->setActivationState(DISABLE_DEACTIVATION);
 	bodyBalax->setActivationState(DISABLE_DEACTIVATION);
 
-	dynamicsWorld->addRigidBody(bodyBall);
+	dynamicsWorld->addRigidBody(bodyAlien1);
 	dynamicsWorld->addRigidBody(bodyTerrain);
 	dynamicsWorld2->addRigidBody(bodyBalax);
 
@@ -164,7 +162,7 @@ int main(){
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 
-		processInput(g_window);
+		processInput(g_window, bodyAlien1);
 			
 
 		glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
@@ -180,11 +178,11 @@ int main(){
 
 		btTransform trans;
 
-		bodyBall->getMotionState()->getWorldTransform(trans);
+		bodyAlien1->getMotionState()->getWorldTransform(trans);
 		
 		trans.getOpenGLMatrix(&aux[0][0]);
-		ball->setModelMatrix(aux);
-		ball->draw(model_mat_location);
+		alien1->setModelMatrix(aux);
+		alien1->draw(model_mat_location);
 
 		bodyTerrain->getMotionState()->getWorldTransform(trans);
 
@@ -215,10 +213,11 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height){
 	glViewport(0, 0, width, height);
 }
 
-void processInput(GLFWwindow *window){
+void processInput(GLFWwindow *window, btRigidBody *player){
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
-
+	
+	/*---Camara---*/
 	float cameraSpeed = 2.5 * deltaTime;
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
 		cameraPos += cameraSpeed * cameraFront;
@@ -228,9 +227,12 @@ void processInput(GLFWwindow *window){
 		cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
 		cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
-	if (glfwGetKey(window, GLFW_KEY_J) == GLFW_PRESS){
-		//return 50;
-	}	
+	
+	/*---Player---*/
+	if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
+		player->applyForce(btVector3(100,0,0), btVector3(0,1,0));
+	if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+		player->applyForce(btVector3(-100,0,0), btVector3(0,1,0));	
 }
 
 
