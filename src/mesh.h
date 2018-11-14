@@ -4,9 +4,10 @@
 #include <glm/glm.hpp>
 #include <bullet/btBulletDynamicsCommon.h>
 
+
 class mesh{
 	protected:
-		GLuint vao, vbo;
+		GLuint vao, vbo, tex;
 		int numVertices;
 		glm::vec3 position;
 		glm::vec3 rotation;
@@ -43,6 +44,7 @@ class mesh{
 
 		/*---Others---*/
 		void draw(int matloc); //Integrar setModelMatrix dentro de la funcion
+		bool load_texture(const char* file_name);
 
 		/*---TODO---*/
 		void setCollisionShape(btCollisionShape *btCS);
