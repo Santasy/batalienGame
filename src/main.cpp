@@ -76,7 +76,7 @@ int main(){
 	alien *alien1 = new alien((char*)"mesh/Alien.obj");
 	piso *terrain = new piso((char*)"mesh/MapaSimple.obj");
 	bala *balax = new bala((char*)"mesh/balaxx.obj");
-	prop *mesa = new prop((char*)"mesh/MesaxSuzanne.obj");
+	//prop *mesa = new prop((char*)"mesh/MesaxSuzanne.obj");
 
 
 	/*---Physic Compound---*/
@@ -93,12 +93,12 @@ int main(){
 	btCollisionShape *balaxShape = new btSphereShape(btScalar(0.4));
 	btCollisionShape *alien1Shape = new btSphereShape(btScalar(1.));
 	btCollisionShape *terrainShape = new btBoxShape(btVector3(15, 0.05f, 15));
-	btCollisionShape *mesaShape = new btBoxShape(btVector3(2,2,2));
+	//btCollisionShape *mesaShape = new btBoxShape(btVector3(2,2,2));
 
-	btTransform mesaTransform;
+	/*btTransform mesaTransform;
 	mesaTransform.setIdentity();
 	mesaTransform.setOrigin(btVector3(5, 2, 3));
-	btScalar mesaMass(100);
+	btScalar mesaMass(100);*/
 
 	btTransform balaxTransform;
 	balaxTransform.setIdentity();
@@ -116,10 +116,10 @@ int main(){
 	btScalar terrainMass(0.);
 
 	bool isDynamicAlien1 = (alien1Mass != 0.0f);
-	bool isDynamicMesa = (mesaMass != 0.0f);
+	//bool isDynamicMesa = (mesaMass != 0.0f);
 	bool isDynamicBalax = (balaxMass != 0.0f);
 
-	btVector3 localInertiaMesa(1,0.,0);
+	//btVector3 localInertiaMesa(1,0.,0);
 	btVector3 localInertiaBalax(1, 0, 0);
 	btVector3 localInertiaAlien1(1, 0, 0);
   btVector3 localInertiaTerrain(1, 0, 0);
@@ -130,9 +130,9 @@ int main(){
 	if(isDynamicBalax){
 		balaxShape->calculateLocalInertia(balaxMass, localInertiaAlien1);
 	}
-	if(isDynamicMesa){
+	/*if(isDynamicMesa){
 		mesaShape->calculateLocalInertia(mesaMass, localInertiaMesa);
-	}
+	}*/
 
 	btDefaultMotionState *alien1MotionState = new btDefaultMotionState(alien1Transform);
 	btRigidBody::btRigidBodyConstructionInfo alien1RbInfo(alien1Mass, alien1MotionState, alien1Shape, localInertiaAlien1);
@@ -149,9 +149,9 @@ int main(){
 	bodyAlien1->setActivationState(DISABLE_DEACTIVATION);
 	bodyBalax->setActivationState(DISABLE_DEACTIVATION);
 
-	btDefaultMotionState *mesaMotionState = new btDefaultMotionState(mesaTransform);
+	/*btDefaultMotionState *mesaMotionState = new btDefaultMotionState(mesaTransform);
 	btRigidBody::btRigidBodyConstructionInfo mesaRbInfo(mesaMass, mesaMotionState, mesaShape, localInertiaMesa);
-	btRigidBody *bodyMesa = new btRigidBody(mesaRbInfo);
+	btRigidBody *bodyMesa = new btRigidBody(mesaRbInfo);*/
 
 	dynamicsWorld->addRigidBody(bodyAlien1);
 	//dynamicsWorld->addRigidBody(bodyMesa);
@@ -230,10 +230,10 @@ int main(){
 		balax->setModelMatrix(aux);
 		balax->draw(model_mat_location);
 
-		bodyMesa->getMotionState()->getWorldTransform(trans);
+	/*	bodyMesa->getMotionState()->getWorldTransform(trans);
 		trans.getOpenGLMatrix(&aux[0][0]);
 		mesa->setModelMatrix(aux);
-		mesa->draw(model_mat_location);
+		mesa->draw(model_mat_location);*/
 		
 		/*
 		dynamicsWorld->debugDrawWorld();
