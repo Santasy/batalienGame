@@ -18,7 +18,7 @@ class mesh{
 
 		/*---Collision---*/
 		btCollisionShape *btCS; // ->calculateLocalIntertia(mass, localInertia);
-		btTransform *btT;
+		btTransform btT;
 		btScalar mass;
 		bool isDynamic;
 		btVector3 localInertia;
@@ -34,24 +34,26 @@ class mesh{
 		glm::vec3 getPosition();
 		glm::vec3 getRotation();
 		char* getFilename();
+		btRigidBody* getBody(); 
 
 		/*---Sets---*/
 		void setVao(GLuint vao);
+		void setMass(double m);
 		void setNumVertices(int num);
 		void setRotation(float ang, glm::vec3 rot);
 		void setFilename(char *f);
 		void setModelMatrix(glm::mat4 model);
+		void setCollisionShape(btCollisionShape *b);
 
 		/*---Others---*/
+		void createRigidBody(btCollisionShape *b, btVector3 origin, float m);
 		void draw(int matloc); //Integrar setModelMatrix dentro de la funcion
 		bool load_texture(const char* file_name);
+		void getTrans(btTransform trans);
 
-		/*---TODO---*/
-		void setCollisionShape(btCollisionShape *btCS);
-		void createRigidBody();
-		void setMass(double m);
+		/*---TODO---*/		
 		void setPosition(glm::vec3 pos); //Rehacer con setOrigin
-		void getTrans(btTransform *trans);
+		
 };
 
 #endif

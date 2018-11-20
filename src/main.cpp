@@ -61,7 +61,7 @@ int main(){
 
 	/*--Perspective---*/
 	glm::mat4 projection = glm::perspective(glm::radians(fov), (float)g_gl_width / (float)g_gl_height, 0.1f, 100.0f);
-  glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+  	glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 
 	int view_mat_location = glGetUniformLocation(shader_programme, "view");
 	glUseProgram(shader_programme);
@@ -76,10 +76,9 @@ int main(){
 	alien *alien1 = new alien((char*)"mesh/Alien.obj");
 	piso *terrain = new piso((char*)"mesh/MapaSimple.obj");
 	bala *balax = new bala((char*)"mesh/balaxx.obj");
-	//prop *mesa = new prop((char*)"mesh/MesaxSuzanne.obj");
-
 
 	/*---Physic Compound---*/
+		/*--General---*/
 	btDefaultCollisionConfiguration *collisionConfiguration = new btDefaultCollisionConfiguration();
 	btCollisionDispatcher *dispatcher = new btCollisionDispatcher(collisionConfiguration);
 	btBroadphaseInterface *overlappingPairCache = new btDbvtBroadphase();
@@ -89,74 +88,27 @@ int main(){
 
 	dynamicsWorld->setGravity(btVector3(0, -9.8f, 0));
 	dynamicsWorld2->setGravity(btVector3(0, 0, -19.0f));
+	
+		/*---Objects---*/
+	
+	alien1->createRigidBody(
+		new btSphereShape(btScalar(1.0f)), //CollisionShape
+		btVector3(3, 5, -3), //Origin
+		5.0f); //Mass
 
-	btCollisionShape *balaxShape = new btSphereShape(btScalar(0.4));
-	btCollisionShape *alien1Shape = new btSphereShape(btScalar(1.));
-	btCollisionShape *terrainShape = new btBoxShape(btVector3(15, 0.05f, 15));
-	//btCollisionShape *mesaShape = new btBoxShape(btVector3(2,2,2));
+	terrain->createRigidBody(
+		new btBoxShape(btVector3(15.0f, 0.05f, 15.0f)), //CollisionShape
+		btVector3(0, 0, 0), //Origin
+		0.0f); //Mass
 
-	/*btTransform mesaTransform;
-	mesaTransform.setIdentity();
-	mesaTransform.setOrigin(btVector3(5, 2, 3));
-	btScalar mesaMass(100);*/
+	balax->createRigidBody(
+		new btSphereShape(btScalar(0.4f)), //CollisionShape
+		btVector3(3, 2, 3), //Origin
+		100.0f); //Mass
 
-	btTransform balaxTransform;
-	balaxTransform.setIdentity();
-	balaxTransform.setOrigin(btVector3(3, 2, 3));
-	btScalar balaxMass(100);
-
-	btTransform alien1Transform;
-	alien1Transform.setIdentity();
-	alien1Transform.setOrigin(btVector3(3, 5, -3));
-	btScalar alien1Mass(5);
-
-	btTransform terrainTransform;
-	terrainTransform.setIdentity();
-	terrainTransform.setOrigin(btVector3(0, 0, 0));
-	btScalar terrainMass(0.);
-
-	bool isDynamicAlien1 = (alien1Mass != 0.0f);
-	//bool isDynamicMesa = (mesaMass != 0.0f);
-	bool isDynamicBalax = (balaxMass != 0.0f);
-
-	//btVector3 localInertiaMesa(1,0.,0);
-	btVector3 localInertiaBalax(1, 0, 0);
-	btVector3 localInertiaAlien1(1, 0, 0);
-  btVector3 localInertiaTerrain(1, 0, 0);
-
-	if(isDynamicAlien1){
-		alien1Shape->calculateLocalInertia(alien1Mass, localInertiaAlien1);
-	}
-	if(isDynamicBalax){
-		balaxShape->calculateLocalInertia(balaxMass, localInertiaAlien1);
-	}
-	/*if(isDynamicMesa){
-		mesaShape->calculateLocalInertia(mesaMass, localInertiaMesa);
-	}*/
-
-	btDefaultMotionState *alien1MotionState = new btDefaultMotionState(alien1Transform);
-	btRigidBody::btRigidBodyConstructionInfo alien1RbInfo(alien1Mass, alien1MotionState, alien1Shape, localInertiaAlien1);
-	btRigidBody *bodyAlien1 = new btRigidBody(alien1RbInfo);
-
-	btDefaultMotionState *balaxMotionState = new btDefaultMotionState(balaxTransform);
-	btRigidBody::btRigidBodyConstructionInfo balaxRbInfo(balaxMass, balaxMotionState, balaxShape, localInertiaBalax);
-	btRigidBody *bodyBalax = new btRigidBody(balaxRbInfo);
-
-	btDefaultMotionState *terrainMotionState = new btDefaultMotionState(terrainTransform);
-	btRigidBody::btRigidBodyConstructionInfo terrainRbInfo(terrainMass, terrainMotionState, terrainShape, localInertiaTerrain);
-	btRigidBody *bodyTerrain = new btRigidBody(terrainRbInfo);
-
-	bodyAlien1->setActivationState(DISABLE_DEACTIVATION);
-	bodyBalax->setActivationState(DISABLE_DEACTIVATION);
-
-	/*btDefaultMotionState *mesaMotionState = new btDefaultMotionState(mesaTransform);
-	btRigidBody::btRigidBodyConstructionInfo mesaRbInfo(mesaMass, mesaMotionState, mesaShape, localInertiaMesa);
-	btRigidBody *bodyMesa = new btRigidBody(mesaRbInfo);*/
-
-	dynamicsWorld->addRigidBody(bodyAlien1);
-	//dynamicsWorld->addRigidBody(bodyMesa);
-	dynamicsWorld->addRigidBody(bodyTerrain);
-	dynamicsWorld2->addRigidBody(bodyBalax);
+	dynamicsWorld->addRigidBody(alien1->getBody());
+	dynamicsWorld->addRigidBody(terrain->getBody());
+	dynamicsWorld2->addRigidBody(balax->getBody());
 
 
 	/*---Debuger---*/
@@ -192,18 +144,16 @@ int main(){
 		dynamicsWorld->stepSimulation(1.0f / 60.0f, 10);
 		dynamicsWorld2->stepSimulation(1.0f / 60.0f, 10);
 
-
 		float currentFrame = glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 
-		processInput(g_window, bodyAlien1);
-			
+		processInput(g_window, alien1->getBody());			
 
 		glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		glUseProgram (shader_programme);
+		glUseProgram(shader_programme);
 
 		projection = glm::perspective(glm::radians(fov), (float)g_gl_width / (float)g_gl_height, 0.1f, 100.0f);
 		glUniformMatrix4fv(proj_mat_location, 1, GL_FALSE, &projection[0][0]);
@@ -213,35 +163,28 @@ int main(){
 
 		btTransform trans;
 
-		bodyAlien1->getMotionState()->getWorldTransform(trans);
-		
+		alien1->getTrans(trans);
 		trans.getOpenGLMatrix(&aux[0][0]);
 		alien1->setModelMatrix(aux);
 		alien1->draw(model_mat_location);
 
-		bodyTerrain->getMotionState()->getWorldTransform(trans);
-
+		terrain->getTrans(trans);
 		trans.getOpenGLMatrix(&aux[0][0]);
 		terrain->setModelMatrix(aux);
 		terrain->draw(model_mat_location);
 
-		bodyBalax->getMotionState()->getWorldTransform(trans); 
+		balax->getTrans(trans);
 		trans.getOpenGLMatrix(&aux[0][0]);
 		balax->setModelMatrix(aux);
 		balax->draw(model_mat_location);
-
-	/*	bodyMesa->getMotionState()->getWorldTransform(trans);
-		trans.getOpenGLMatrix(&aux[0][0]);
-		mesa->setModelMatrix(aux);
-		mesa->draw(model_mat_location);*/
 		
-		/*
+		/*---Debug---*/
 		dynamicsWorld->debugDrawWorld();
 		debug->drawLines();
 		dynamicsWorld2->debugDrawWorld();
 		debug->drawLines();
-		*/
-
+		
+		/*---*/
 		glfwSwapBuffers(g_window);
 		glfwPollEvents();
 	}
