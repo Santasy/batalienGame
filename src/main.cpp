@@ -15,11 +15,16 @@
 #include "prop.h"
 #include "piso.h"
 #include "bala.h"
+#include "stb_image.h"
+#include "maths_funcs.h"
 #include "GLDebugDrawer.hpp"
 
 #define GL_LOG_FILE "log/gl.log"
 #define VERTEX_SHADER_FILE "shaders/vShader.glsl"
 #define FRAGMENT_SHADER_FILE "shaders/fShader.glsl"
+
+#define SKYBOX_VERTEX_SHADER_FILE "shaders/sky_vert.glsl"
+#define SKYBOX_FRAGMENT_SHADER_FILE "shaders/sky_frag.glsl"
 
 /*---Interaction Functions---*/
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -48,9 +53,64 @@ float fov   =  90.0f;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
+bool load_cube_map_side( GLuint texture, GLenum side_target, const char *file_name ) {
+	
+	glBindTexture( GL_TEXTURE_CUBE_MAP, texture );
+
+	int x, y, n;
+	int force_channels = 4;
+	unsigned char *image_data = stbi_load( file_name, &x, &y, &n, force_channels );
+	if ( !image_data ) {
+		fprintf( stderr, "ERROR: could not load %s\n", file_name );
+		return false;
+	}
+	// non-power-of-2 dimensions check
+	if ( ( x & ( x - 1 ) ) != 0 || ( y & ( y - 1 ) ) != 0 ) {
+		fprintf( stderr, "WARNING: image %s is not power-of-2 dimensions\n", file_name );
+	}
+
+	// copy image data into 'target' side of cube map
+	glTexImage2D( side_target, 0, GL_RGBA, x, y, 0, GL_RGBA, GL_UNSIGNED_BYTE, image_data );
+	free( image_data );
+	return true;
+}
+
 int main(){
 	/*---Window---*/
 	init();
+
+	float points[] = {
+		-150.0f, 150.0f,	-150.0f, -150.0f, -150.0f, 150.0f, 150.0f,	-150.0f, -150.0f,
+		150.0f,	-150.0f, -150.0f, 150.0f,	150.0f,	-150.0f, -150.0f, 150.0f,	-150.0f,
+
+		-150.0f, -150.0f, 150.0f,	-150.0f, -150.0f, -150.0f, -150.0f, 150.0f,	-150.0f,
+		-150.0f, 150.0f,	-150.0f, -150.0f, 150.0f,	150.0f,	-150.0f, -150.0f, 150.0f,
+
+		150.0f,	-150.0f, -150.0f, 150.0f,	-150.0f, 150.0f,	150.0f,	150.0f,	150.0f,
+		150.0f,	150.0f,	150.0f,	150.0f,	150.0f,	-150.0f, 150.0f,	-150.0f, -150.0f,
+
+		-150.0f, 150.0f, 150.0f,	-150.0f, 150.0f,	150.0f,	150.0f,	150.0f,	150.0f,
+		150.0f,	150.0f,	150.0f,	150.0f,	-150.0f, 150.0f,	-150.0f, -150.0f, 150.0f,
+
+		-150.0f, 150.0f,	-150.0f, 150.0f,	150.0f,	-150.0f, 150.0f,	150.0f,150.0f,
+		150.0f,	150.0f,	150.0f,	-150.0f, 150.0f,	150.0f,	-150.0f, 150.0f,	-150.0f,
+
+		-150.0f, -150.0f, -150.0f, -150.0f, 150.0f, 150.0f,	150.0f,	-150.0f, -150.0f,
+		150.0f,	-150.0f, -150.0f, -150.0f, -150.0f, 150.0f,	150.0f,	-150.0f, 150.0f
+	};
+	GLuint vbosky;
+	glGenBuffers( 1, &vbosky );
+	glBindBuffer( GL_ARRAY_BUFFER, vbosky );
+	glBufferData( GL_ARRAY_BUFFER, 3 * 36 * sizeof( GLfloat ), &points,
+								GL_STATIC_DRAW );
+
+	GLuint vaosky;
+	glGenVertexArrays( 1, &vaosky );
+	glBindVertexArray( vaosky );
+	glEnableVertexAttribArray( 0 );
+	glBindBuffer( GL_ARRAY_BUFFER, vbosky );
+	glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, 0, NULL );
+
 	glfwSetFramebufferSizeCallback(g_window, framebuffer_size_callback);
 	glfwSetCursorPosCallback(g_window, mouse_callback);
 	glfwSetScrollCallback(g_window, scroll_callback);
@@ -60,7 +120,7 @@ int main(){
 	GLuint shader_programme = create_programme_from_files(VERTEX_SHADER_FILE, FRAGMENT_SHADER_FILE);
 
 	/*--Perspective---*/
-	glm::mat4 projection = glm::perspective(glm::radians(fov), (float)g_gl_width / (float)g_gl_height, 0.1f, 100.0f);
+	glm::mat4 projection = glm::perspective(glm::radians(fov), (float)g_gl_width / (float)g_gl_height, 0.1f, 10000.0f);
   glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 
 	int view_mat_location = glGetUniformLocation(shader_programme, "view");
@@ -75,6 +135,7 @@ int main(){
 	/*---Mesh load---*/
 	alien *alien1 = new alien((char*)"mesh/Alien.obj");
 	piso *terrain = new piso((char*)"mesh/MapaSimple.obj");
+	terrain->load_texture("textures/mars4k.jpg");
 	bala *balax = new bala((char*)"mesh/balaxx.obj");
 	//prop *mesa = new prop((char*)"mesh/MesaxSuzanne.obj");
 
@@ -166,6 +227,32 @@ int main(){
 	debug->setProj(&projection);
 	dynamicsWorld->setDebugDrawer(debug);
 
+	/*---Shaders Skybox---*/
+	GLuint skybox_shader = create_programme_from_files ( SKYBOX_VERTEX_SHADER_FILE, SKYBOX_FRAGMENT_SHADER_FILE);
+	glUseProgram (skybox_shader);
+
+	int view_skybox = glGetUniformLocation (skybox_shader, "view");
+	int proj_skybox = glGetUniformLocation (skybox_shader, "proj");
+	glUniformMatrix4fv (view_skybox, 1, GL_FALSE, &view[0][0]);
+	glUniformMatrix4fv (proj_skybox, 1, GL_FALSE, &projection[0][0]);
+
+	GLuint cube_map_texture;
+	glActiveTexture( GL_TEXTURE0 );
+	glGenTextures( 1, &cube_map_texture );
+
+	 load_cube_map_side( cube_map_texture, GL_TEXTURE_CUBE_MAP_POSITIVE_Z, "textures/ame_nebula/skybox_back.tga" );
+	 load_cube_map_side( cube_map_texture, GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, "textures/ame_nebula/skybox_front.tga"  );
+	 load_cube_map_side( cube_map_texture, GL_TEXTURE_CUBE_MAP_POSITIVE_Y, "textures/ame_nebula/skybox_up.tga" ) ;
+	 load_cube_map_side( cube_map_texture, GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, "textures/ame_nebula/skybox_down.tga"  );
+	 load_cube_map_side( cube_map_texture, GL_TEXTURE_CUBE_MAP_NEGATIVE_X, "textures/ame_nebula/skybox_left.tga" ) ;
+	 load_cube_map_side( cube_map_texture, GL_TEXTURE_CUBE_MAP_POSITIVE_X, "textures/ame_nebula/skybox_right.tga" ) ;
+
+	glTexParameteri( GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+	glTexParameteri( GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+	glTexParameteri( GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE );
+	glTexParameteri( GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
+	glTexParameteri( GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+
 	/*---Main Loop---*/
 	glm::mat4 aux;
 
@@ -189,6 +276,11 @@ int main(){
 
 		/*---------------*/
 
+		
+
+
+		glUseProgram (shader_programme);
+
 		dynamicsWorld->stepSimulation(1.0f / 60.0f, 10);
 		dynamicsWorld2->stepSimulation(1.0f / 60.0f, 10);
 
@@ -202,6 +294,16 @@ int main(){
 
 		glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		glUseProgram (skybox_shader);
+
+		glDepthMask( GL_FALSE );
+		glUseProgram( skybox_shader );
+		glActiveTexture( GL_TEXTURE0 );
+		glBindTexture( GL_TEXTURE_CUBE_MAP, cube_map_texture );
+		glBindVertexArray( vaosky );
+		glDrawArrays( GL_TRIANGLES, 0, 36 );
+		glDepthMask( GL_TRUE );
 
 		glUseProgram (shader_programme);
 
@@ -241,6 +343,9 @@ int main(){
 		dynamicsWorld2->debugDrawWorld();
 		debug->drawLines();
 		*/
+
+		glUseProgram (skybox_shader);
+		glUniformMatrix4fv(view_skybox, 1, GL_FALSE, &view[0][0]);
 
 		glfwSwapBuffers(g_window);
 		glfwPollEvents();

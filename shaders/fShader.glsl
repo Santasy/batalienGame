@@ -8,6 +8,6 @@ uniform sampler2D basic_texture;
 void main(){
 	vec4 texel = texture (basic_texture, st);
 	//float l = clamp( dot(normalize(normal), normalize(light)), 0, 1 );
-	//frag_colour = texel;
-	frag_colour = vec4 (normal, 1.0);
+	frag_colour = texel;
+	//frag_colour = vec4 (normal, 1.0);
 }
