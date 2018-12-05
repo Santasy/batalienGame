@@ -8,9 +8,6 @@ class bala : public mesh{
 
 	public:
 		bala(char *filename);
-
-		/*---Others---*/
-		void draw(int matloc);
 };
 
 #endif

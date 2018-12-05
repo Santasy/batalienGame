@@ -5,6 +5,7 @@
 #include <bits/stdc++.h>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#include "stb_image.h"
 
 /* Propiedades de ventana */
 extern int g_gl_width;
@@ -18,6 +19,9 @@ bool gl_log_err(const char *message, ...);
 
 /* GLFW3 y GLEW */
 bool init();
+void createSkyBox(GLuint &vbosky, GLuint &vaosky);
+void textureSkyBox(GLuint &cube_map_texture);
+bool load_cube_map_side(GLuint texture, GLenum side_target, const char *file_name);
 void glfw_error_callback(int error, const char *description);
 void glfw_window_size_callback(GLFWwindow *window, int width, int height);
 void updateFPS(GLFWwindow *window);

@@ -12,6 +12,10 @@ mesh::mesh(char *filename){
 }
 
 /*---Gets---*/
+btRigidBody* mesh::getBody(){
+	return this->body;
+}
+
 GLuint mesh::getVao(){
 	return this->vao;
 }
@@ -33,6 +37,13 @@ char* mesh::getFilename(){
 }
 
 /*---Sets---*/
+void mesh::setMass(double m){
+	this->mass = *(new btScalar(m));
+}
+
+void mesh::setCollisionShape(btCollisionShape *b){
+	this->btCS = b;
+}
 
 void mesh::setPosition(glm::vec3 pos){
 	this->position = pos;
@@ -52,7 +63,25 @@ void mesh::setModelMatrix(glm::mat4 model){
 }
 
 /*---Others---*/
-void mesh::draw(int matloc){
+void mesh::createRigidBody(btCollisionShape *b, btVector3 origin, float m){
+	this->btCS = b;
+	this->btT.setIdentity();
+	this->btT.setOrigin(origin);
+	this->mass = *(new btScalar(m));
+	this->localInertia = *(new btVector3(1, 0, 0));
+	this->isDynamic = (m != 0.0f);
+	if(this->isDynamic) this->btCS->calculateLocalInertia(this->mass, this->localInertia);
+	this->motionState = new btDefaultMotionState(this->btT);
+	btRigidBody::btRigidBodyConstructionInfo info(this->mass, this->motionState, this->btCS, this->localInertia);
+	this->body = new btRigidBody(info);
+	this->body->setActivationState(DISABLE_DEACTIVATION);
+}
+
+void mesh::draw(int matloc, glm::mat4 &aux, btTransform &trans){
+	this->body->getMotionState()->getWorldTransform(trans);
+	trans.getOpenGLMatrix(&aux[0][0]);
+	this->setModelMatrix(aux);
+
 	glUniformMatrix4fv(matloc, 1, GL_FALSE, &this->modelMatrix[0][0]);
 	glBindVertexArray(this->getVao());
 	glDrawArrays(GL_TRIANGLES, 0, this->getNumVertices());
