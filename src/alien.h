@@ -8,6 +8,7 @@ class alien : public mesh{
 	
 	public:
 		alien(char *filename);
+		int cooldown;
 };
 
 #endif

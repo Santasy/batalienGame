@@ -33,6 +33,8 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow *window, btRigidBody *player);
+void shootBullet(alien* shooter);
+void reducirCooldowns();
 
 /*---Window Properties---*/
 int g_gl_width  =  1080;
@@ -54,6 +56,11 @@ float fov   =  90.0f;
 /*---Time Calculation---*/
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
+
+btDiscreteDynamicsWorld *world; //lo usaremos para acceder al mundo de forma global.
+std::vector<alien*> bullets; //vector de balas
+alien *alien1; //lo usaremos para acceder al alien de forma global, está aquí temporalmente para programar y debugear
+alien *alien2; //otro alien, para probar
 
 int main(){
 	/*---Window---*/
@@ -82,9 +89,13 @@ int main(){
 		/*----------*/
 
 	/*---Mesh and Textures---*/
-	alien *alien1 = new alien((char*)"mesh/Alien.obj");
+	alien1 = new alien((char*)"mesh/Alien.obj");
+	alien2 = new alien((char*)"mesh/Alien.obj");
 	piso *terrain = new piso((char*)"mesh/MapaSimple.obj");
 	terrain->load_texture("textures/mars4k.jpg");
+
+	alien1->cooldown = 0;
+	alien2->cooldown = 0;
 
 	/*---Physic Compound---*/
 	btDefaultCollisionConfiguration *collisionConfiguration = new btDefaultCollisionConfiguration();
@@ -92,15 +103,20 @@ int main(){
 	btBroadphaseInterface *overlappingPairCache = new btDbvtBroadphase();
 	btSequentialImpulseConstraintSolver *solver = new btSequentialImpulseConstraintSolver;
 	btDiscreteDynamicsWorld *dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher, overlappingPairCache, solver, collisionConfiguration);
-	btDiscreteDynamicsWorld *dynamicsWorld2 = new btDiscreteDynamicsWorld(dispatcher, overlappingPairCache, solver, collisionConfiguration);
+
+	world = dynamicsWorld; //le pasamos el puntero a nuestro mundo global
 
 	dynamicsWorld->setGravity(btVector3(0, -9.8f, 0));
-	dynamicsWorld2->setGravity(btVector3(0, 0, -19.0f));
 
 		/*---Objects---*/
 	alien1->createRigidBody(
 		new btSphereShape(btScalar(1.0f)), //CollisionShape
 		btVector3(0, 1, 0), //Origin
+		5.0f); //Mass
+
+	alien2->createRigidBody(
+		new btSphereShape(btScalar(1.0f)), //CollisionShape
+		btVector3(5, 1, 1), //Origin
 		5.0f); //Mass
 
 	terrain->createRigidBody(
@@ -109,6 +125,7 @@ int main(){
 		0.0f); //Mass
 
 	dynamicsWorld->addRigidBody(alien1->getBody());
+	dynamicsWorld->addRigidBody(alien2->getBody());
 	dynamicsWorld->addRigidBody(terrain->getBody());
 
 	/*---SkyBox Shader---*/
@@ -168,7 +185,6 @@ int main(){
 		glUseProgram (shader_programme);
 
 		dynamicsWorld->stepSimulation(1.0f / 60.0f, 10);
-		dynamicsWorld2->stepSimulation(1.0f / 60.0f, 10);
 
 		glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -176,12 +192,22 @@ int main(){
 		glUniformMatrix4fv(proj_mat_location, 1, GL_FALSE, &projection[0][0]);
 		view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 		glUniformMatrix4fv(view_mat_location, 1, GL_FALSE, &view[0][0]);
+
+		reducirCooldowns();
 		
 		/*---Draws---*/
 		btTransform trans;
 
 		alien1->draw(model_mat_location, aux, trans);
+		alien2->draw(model_mat_location, aux, trans);
 		terrain->draw(model_mat_location, aux, trans);
+
+		for (int i = 0; i < bullets.size(); i++){
+			bullets[i]->draw(model_mat_location, aux, trans);
+		}
+
+
+		
 
 		/*---SkyBox Programme---*/
 		glUseProgram(skybox_shader);
@@ -198,13 +224,12 @@ int main(){
 		/*---World Debug---*/
 		dynamicsWorld->debugDrawWorld();
 		debug->drawLines();
-		dynamicsWorld2->debugDrawWorld();
-		debug->drawLines();
 
 		/*----------*/
 		glfwSwapBuffers(g_window);
 		glfwPollEvents();
 	}
+	
 	glfwTerminate();
 	return 0;
 }
@@ -236,6 +261,10 @@ void processInput(GLFWwindow *window, btRigidBody *player){
 		player->applyCentralForce(btVector3(-30.0,0.,0.));
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
 		player->applyCentralForce(btVector3(30.0,0.,0.));
+
+	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+		shootBullet(alien1); //a la funcion shootBullet se le pasa un alien* que determina quién está disparando 
+	
 	/*-----------JoystickInputs----------*/
 	int present = glfwJoystickPresent(GLFW_JOYSTICK_1);
 	if(present==1){
@@ -299,4 +328,27 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset){
 		fov = 1.0f;
 	if (fov >= 45.0f)
 		fov = 45.0f;
+}
+
+void shootBullet(alien* shooter){ //mas tarde mover este metodo  a la clase alien. shooter = el alien que dispara
+	if (!(shooter->cooldown)){ //ver si el disparo de este alien esta en enfriamiento
+		alien *new_bullet = new alien((char*)"mesh/Alien.obj");
+		new_bullet->createRigidBody(
+			new btSphereShape(btScalar(0.3f)),
+			shooter->getBody()->getCenterOfMassPosition() + btVector3(1,0,1), //la bala sale desde el alien que dispara + (1 0 1) (para que no choquen entre ellos)
+			1.0f); //mass
+		bullets.push_back(new_bullet); //agrega la bala al vector de balas
+		new_bullet->getBody()->setLinearVelocity(btVector3(15,0,1)); //velocidad de la bala, hay que cambiarlo por la direccion del alien
+		world->addRigidBody(new_bullet->getBody()); //agrega la bala al mundo
+		new_bullet->getBody()->setGravity(btVector3(0,0,0)); //para que las balas no caigan. OBS: esto debe ir despues de agregarse la bala al mundo
+		shooter->cooldown = 60; //ponemos el disparo en cd, 1 seg
+	}
+}
+
+void reducirCooldowns(){
+	if (alien1->cooldown > 0)
+		(alien1->cooldown)--;
+	if (alien2->cooldown > 0)
+		(alien2->cooldown)--;
+
 }
