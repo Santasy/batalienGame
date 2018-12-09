@@ -336,7 +336,7 @@ void shootBullet(alien* shooter){ //mas tarde mover este metodo  a la clase alie
 		bala *new_bullet = new bala((char*)"mesh/Alien.obj");
 		new_bullet->createRigidBody(
 			new btSphereShape(btScalar(0.3f)),
-			shooter->getBody()->getCenterOfMassPosition() + shooter->getBody()->getLinearVelocity().normalized(), //la bala sale desde el alien que dispara + (1 0 1) (para que no choquen entre ellos)
+			shooter->getBody()->getCenterOfMassPosition() + shooter->getBody()->getLinearVelocity().normalized(),
 			1.0f); //mass
 		bullets.push_back(new_bullet); //agrega la bala al vector de balas
 		new_bullet->getBody()->setLinearVelocity(15 * shooter->getBody()->getLinearVelocity().normalized()); 
