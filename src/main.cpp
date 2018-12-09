@@ -35,6 +35,7 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow *window, btRigidBody *player);
 void shootBullet(alien* shooter);
 void reducirCooldowns();
+bool collisionCallbackFunc();
 
 /*---Window Properties---*/
 int g_gl_width  =  1080;
@@ -58,7 +59,7 @@ float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
 btDiscreteDynamicsWorld *world; //lo usaremos para acceder al mundo de forma global.
-std::vector<alien*> bullets; //vector de balas
+std::vector<bala*> bullets; //vector de balas
 alien *alien1; //lo usaremos para acceder al alien de forma global, está aquí temporalmente para programar y debugear
 alien *alien2; //otro alien, para probar
 
@@ -332,13 +333,13 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset){
 
 void shootBullet(alien* shooter){ //mas tarde mover este metodo  a la clase alien. shooter = el alien que dispara
 	if (!(shooter->cooldown)){ //ver si el disparo de este alien esta en enfriamiento
-		alien *new_bullet = new alien((char*)"mesh/Alien.obj");
+		bala *new_bullet = new bala((char*)"mesh/Alien.obj");
 		new_bullet->createRigidBody(
 			new btSphereShape(btScalar(0.3f)),
-			shooter->getBody()->getCenterOfMassPosition() + btVector3(1,0,1), //la bala sale desde el alien que dispara + (1 0 1) (para que no choquen entre ellos)
+			shooter->getBody()->getCenterOfMassPosition() + shooter->getBody()->getLinearVelocity().normalized(), //la bala sale desde el alien que dispara + (1 0 1) (para que no choquen entre ellos)
 			1.0f); //mass
 		bullets.push_back(new_bullet); //agrega la bala al vector de balas
-		new_bullet->getBody()->setLinearVelocity(btVector3(15,0,1)); //velocidad de la bala, hay que cambiarlo por la direccion del alien
+		new_bullet->getBody()->setLinearVelocity(15 * shooter->getBody()->getLinearVelocity().normalized()); 
 		world->addRigidBody(new_bullet->getBody()); //agrega la bala al mundo
 		new_bullet->getBody()->setGravity(btVector3(0,0,0)); //para que las balas no caigan. OBS: esto debe ir despues de agregarse la bala al mundo
 		shooter->cooldown = 60; //ponemos el disparo en cd, 1 seg
