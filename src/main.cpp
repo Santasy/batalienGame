@@ -35,7 +35,7 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow *window, btRigidBody *player);
 void shootBullet(alien* shooter);
 void reducirCooldowns();
-bool collisionCallbackFunc();
+bool contactAddedCallbackBullet( btManifoldPoint& cp, const btCollisionObjectWrapper * colObj0, int partId0, int index0, const btCollisionObjectWrapper * colObj1, int partId1, int index1);
 
 /*---Window Properties---*/
 int g_gl_width  =  1080;
@@ -99,6 +99,7 @@ int main(){
 	alien2->cooldown = 0;
 
 	/*---Physic Compound---*/
+
 	btDefaultCollisionConfiguration *collisionConfiguration = new btDefaultCollisionConfiguration();
 	btCollisionDispatcher *dispatcher = new btCollisionDispatcher(collisionConfiguration);
 	btBroadphaseInterface *overlappingPairCache = new btDbvtBroadphase();
@@ -108,6 +109,8 @@ int main(){
 	world = dynamicsWorld; //le pasamos el puntero a nuestro mundo global
 
 	dynamicsWorld->setGravity(btVector3(0, -9.8f, 0));
+
+	gContactAddedCallback=contactAddedCallbackBullet;
 
 		/*---Objects---*/
 	alien1->createRigidBody(
@@ -336,9 +339,10 @@ void shootBullet(alien* shooter){ //mas tarde mover este metodo  a la clase alie
 		bala *new_bullet = new bala((char*)"mesh/Alien.obj");
 		new_bullet->createRigidBody(
 			new btSphereShape(btScalar(0.3f)),
-			shooter->getBody()->getCenterOfMassPosition() + shooter->getBody()->getLinearVelocity().normalized(),
+			shooter->getBody()->getCenterOfMassPosition() + (shooter->getBody()->getLinearVelocity().normalized() * 2), //dispara en la direccion de movimiento de shooter
 			1.0f); //mass
 		bullets.push_back(new_bullet); //agrega la bala al vector de balas
+		new_bullet->getBody()->setCollisionFlags(new_bullet->getBody()->getCollisionFlags() | btCollisionObject::CF_CUSTOM_MATERIAL_CALLBACK);
 		new_bullet->getBody()->setLinearVelocity(15 * shooter->getBody()->getLinearVelocity().normalized()); 
 		world->addRigidBody(new_bullet->getBody()); //agrega la bala al mundo
 		new_bullet->getBody()->setGravity(btVector3(0,0,0)); //para que las balas no caigan. OBS: esto debe ir despues de agregarse la bala al mundo
@@ -352,4 +356,11 @@ void reducirCooldowns(){
 	if (alien2->cooldown > 0)
 		(alien2->cooldown)--;
 
+}
+
+
+//esta funcion se llama cuando hay colision de alguna bala con otro objeto
+bool contactAddedCallbackBullet(btManifoldPoint& cp, const btCollisionObjectWrapper * colObj0, int partId0, int index0, const btCollisionObjectWrapper * colObj1, int partId1, int index1){
+	std::cout << "collision" << std::endl;
+	return false;
 }
