@@ -35,6 +35,7 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow *window, btRigidBody *player);
 void shootBullet(alien* shooter);
 void reducirCooldowns();
+void checkAliensHP();
 bool contactAddedCallbackBullet( btManifoldPoint& cp, const btCollisionObjectWrapper * colObj0, int partId0, int index0, const btCollisionObjectWrapper * colObj1, int partId1, int index1);
 
 /*---Window Properties---*/
@@ -95,8 +96,12 @@ int main(){
 	piso *terrain = new piso((char*)"mesh/MapaSimple.obj");
 	terrain->load_texture("textures/mars4k.jpg");
 
+	/*INIT ALIENS*/
+
+	alien1->alive = true;
 	alien1->cooldown = 0;
 	alien1->hp = 3;
+	alien2->alive = true;
 	alien2->cooldown = 0;
 	alien2->hp = 3;
 
@@ -122,7 +127,7 @@ int main(){
 
 	alien2->createRigidBody(
 		new btSphereShape(btScalar(1.0f)), //CollisionShape
-		btVector3(5, 1, 1), //Origin
+		btVector3(12, 1, 0), //Origin
 		5.0f); //Mass
 
 	terrain->createRigidBody(
@@ -203,12 +208,15 @@ int main(){
 		glUniformMatrix4fv(view_mat_location, 1, GL_FALSE, &view[0][0]);
 
 		reducirCooldowns();
+		checkAliensHP();
 		
 		/*---Draws---*/
 		btTransform trans;
 
-		alien1->draw(model_mat_location, aux, trans);
-		alien2->draw(model_mat_location, aux, trans);
+		if (alien1->alive)
+			alien1->draw(model_mat_location, aux, trans);
+		if (alien2->alive)
+			alien2->draw(model_mat_location, aux, trans);
 		terrain->draw(model_mat_location, aux, trans);
 
 		for (int i = 0; i < bullets.size(); i++){
@@ -378,9 +386,25 @@ bool contactAddedCallbackBullet(btManifoldPoint& cp, const btCollisionObjectWrap
 	alien* alien_victima = ((alien*)(colObj0->getCollisionObject()->getUserPointer()));
 	alien_victima->hp--;
 	std::cout << "HP DEL ALIEN VICTIMA: " << alien_victima->hp << std::endl;
-	
-	
+
 	return false;
+}
+
+void checkAliensHP(){ //mata al alien si este llega a 0 hp
+	if (alien1->hp == 0){
+		std::cout << "alien 1 muere" << std::endl;
+		alien1->alive = false;
+		alien1->hp = -1;
+		world->removeRigidBody(alien1->getBody());
+	}
+		
+	if (alien2->hp == 0){
+		std::cout << "alien 2 muere" << std::endl;
+		alien2->alive = false;
+		alien2->hp = -1;
+		world->removeRigidBody(alien2->getBody());
+	}
+		
 }
 
 

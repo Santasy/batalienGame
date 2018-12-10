@@ -10,6 +10,7 @@ class alien : public mesh{
 		alien(char *filename);
 		int cooldown;
 		int hp;
+		bool alive;
 };
 
 #endif
