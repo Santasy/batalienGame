@@ -63,6 +63,8 @@ btDiscreteDynamicsWorld *world; //lo usaremos para acceder al mundo de forma glo
 std::vector<bala*> bullets; //vector de balas
 alien *alien1; //lo usaremos para acceder al alien de forma global, está aquí temporalmente para programar y debugear
 alien *alien2; //otro alien, para probar
+alien *alien3;
+
 
 int main(){
 	/*---Window---*/
@@ -93,6 +95,7 @@ int main(){
 	/*---Mesh and Textures---*/
 	alien1 = new alien((char*)"mesh/Alien.obj");
 	alien2 = new alien((char*)"mesh/Alien.obj");
+	alien3 = new alien((char*)"mesh/Alien.obj");
 	piso *terrain = new piso((char*)"mesh/MapaSimple.obj");
 	terrain->load_texture("textures/mars4k.jpg");
 
@@ -104,6 +107,9 @@ int main(){
 	alien2->alive = true;
 	alien2->cooldown = 0;
 	alien2->hp = 3;
+	alien3->alive = true;
+	alien3->cooldown = 0;
+	alien3->hp = 3;
 
 	/*---Physic Compound---*/
 
@@ -130,6 +136,11 @@ int main(){
 		btVector3(12, 1, 0), //Origin
 		5.0f); //Mass
 
+	alien3->createRigidBody(
+		new btSphereShape(btScalar(1.0f)), //CollisionShape
+		btVector3(-12, 1, 3), //Origin
+		5.0f); //Mass
+
 	terrain->createRigidBody(
 		new btBoxShape(btVector3(15.0f, 0.05f, 15.0f)), //CollisionShape
 		btVector3(0, 0, 0), //Origin
@@ -137,10 +148,12 @@ int main(){
 
 	dynamicsWorld->addRigidBody(alien1->getBody());
 	dynamicsWorld->addRigidBody(alien2->getBody());
+	dynamicsWorld->addRigidBody(alien3->getBody());
 	dynamicsWorld->addRigidBody(terrain->getBody());
 
 	alien1->getBody()->setUserPointer(alien1);
 	alien2->getBody()->setUserPointer(alien2);
+	alien3->getBody()->setUserPointer(alien3);
 
 	/*---SkyBox Shader---*/
 	GLuint vbosky;
@@ -217,6 +230,8 @@ int main(){
 			alien1->draw(model_mat_location, aux, trans);
 		if (alien2->alive)
 			alien2->draw(model_mat_location, aux, trans);
+		if (alien3->alive)
+			alien3->draw(model_mat_location, aux, trans);
 		terrain->draw(model_mat_location, aux, trans);
 
 		for (int i = 0; i < bullets.size(); i++){
@@ -369,6 +384,8 @@ void reducirCooldowns(){
 		(alien1->cooldown)--;
 	if (alien2->cooldown > 0)
 		(alien2->cooldown)--;
+	if (alien3->cooldown > 0)
+		(alien3->cooldown)--;
 }
 
 
@@ -403,6 +420,12 @@ void checkAliensHP(){ //mata al alien si este llega a 0 hp
 		alien2->alive = false;
 		alien2->hp = -1;
 		world->removeRigidBody(alien2->getBody());
+	}
+	if (alien3->hp == 0){
+		std::cout << "alien 2 muere" << std::endl;
+		alien3->alive = false;
+		alien3->hp = -1;
+		world->removeRigidBody(alien3->getBody());
 	}
 		
 }
