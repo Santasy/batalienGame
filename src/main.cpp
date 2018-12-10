@@ -134,6 +134,9 @@ int main(){
 	dynamicsWorld->addRigidBody(alien2->getBody());
 	dynamicsWorld->addRigidBody(terrain->getBody());
 
+	alien1->getBody()->setUserPointer(alien1);
+	alien2->getBody()->setUserPointer(alien2);
+
 	/*---SkyBox Shader---*/
 	GLuint vbosky;
 	GLuint vaosky;
@@ -349,7 +352,7 @@ void shootBullet(alien* shooter){ //mas tarde mover este metodo  a la clase alie
 		new_bullet->getBody()->setLinearVelocity(15 * shooter->getBody()->getLinearVelocity().normalized()); 
 		world->addRigidBody(new_bullet->getBody()); //agrega la bala al mundo
 		new_bullet->getBody()->setGravity(btVector3(0,0,0)); //para que las balas no caigan. OBS: esto debe ir despues de agregarse la bala al mundo
-		shooter->cooldown = 20; //ponemos el disparo en cd
+		shooter->cooldown = 30; //ponemos el disparo en cd
 	}
 }
 
@@ -372,9 +375,9 @@ bool contactAddedCallbackBullet(btManifoldPoint& cp, const btCollisionObjectWrap
 	auto it = std::find(bullets.begin(), bullets.end(), bala_atacante); 
    	if (it != bullets.end()) { bullets.erase(it); } //borra la bala del vector de balas
 
-	//alien* alien_victima = ((alien*)(colObj0->getCollisionObject()->getUserPointer()));
-	//alien_victima->hp--;
-	//std::cout << "HP DEL ALIEN VICTIMA: " << alien_victima->hp << std::endl;
+	alien* alien_victima = ((alien*)(colObj0->getCollisionObject()->getUserPointer()));
+	alien_victima->hp--;
+	std::cout << "HP DEL ALIEN VICTIMA: " << alien_victima->hp << std::endl;
 	
 	
 	return false;
