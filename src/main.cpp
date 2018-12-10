@@ -32,7 +32,7 @@
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
-void processInput(GLFWwindow *window, btRigidBody *player1,btRigidBody *player2,btRigidBody *player3);
+void processInput(GLFWwindow *window, btRigidBody *player1,btRigidBody *player2,btRigidBody *player3,btRigidBody *player4);
 void shootBullet(alien* shooter);
 void reducirCooldowns();
 void checkAliensHP();
@@ -64,6 +64,7 @@ std::vector<bala*> bullets; //vector de balas
 alien *alien1; //lo usaremos para acceder al alien de forma global, está aquí temporalmente para programar y debugear
 alien *alien2; //otro alien, para probar
 alien *alien3; //nos gusta crear aliens
+alien *alien4; //aliensdictos
 
 
 int main(){
@@ -93,6 +94,7 @@ int main(){
 	alien1 = new alien((char*)"mesh/Alien.obj");
 	alien2 = new alien((char*)"mesh/Alien.obj");
 	alien3 = new alien((char*)"mesh/Alien.obj");
+	alien4 = new alien((char*)"mesh/Alien.obj");
 	piso *terrain = new piso((char*)"mesh/MapaSimple.obj");
 	terrain->load_texture("textures/mars4k.jpg");
 
@@ -106,6 +108,9 @@ int main(){
 	alien3->alive = true;
 	alien3->cooldown = 0;
 	alien3->hp = 3;
+	alien4->alive = true;
+	alien4->cooldown = 0;
+	alien4->hp = 3;
 
 	/*---Physic Compound---*/
 
@@ -136,6 +141,10 @@ int main(){
 		new btSphereShape(btScalar(1.0f)), //CollisionShape
 		btVector3(-12, 1, 3), //Origin
 		5.0f); //Mass
+	alien4->createRigidBody(
+		new btSphereShape(btScalar(1.0f)), //CollisionShape
+		btVector3(6, 1, 3), //Origin
+		5.0f); //Mass
 
 	terrain->createRigidBody(
 		new btBoxShape(btVector3(15.0f, 0.05f, 15.0f)), //CollisionShape
@@ -145,11 +154,13 @@ int main(){
 	dynamicsWorld->addRigidBody(alien1->getBody());
 	dynamicsWorld->addRigidBody(alien2->getBody());
 	dynamicsWorld->addRigidBody(alien3->getBody());
+	dynamicsWorld->addRigidBody(alien4->getBody());
 	dynamicsWorld->addRigidBody(terrain->getBody());
 
 	alien1->getBody()->setUserPointer(alien1);
 	alien2->getBody()->setUserPointer(alien2);
 	alien3->getBody()->setUserPointer(alien3);
+	alien4->getBody()->setUserPointer(alien4);
 
 	/*---SkyBox Shader---*/
 	GLuint vbosky;
@@ -185,7 +196,7 @@ int main(){
 		lastFrame = currentFrame;
 
 		/*---Input---*/
-		processInput(g_window, alien1->getBody(),alien2->getBody(),alien3->getBody());
+		processInput(g_window, alien1->getBody(),alien2->getBody(),alien3->getBody(),alien4->getBody());
 		/*---------------*/
 
 		/*---World---*/
@@ -212,6 +223,8 @@ int main(){
 			alien2->draw(model_mat_location, aux, trans);
 		if (alien3->alive)
 			alien3->draw(model_mat_location, aux, trans);
+		if (alien4->alive)
+			alien4->draw(model_mat_location, aux, trans);
 		terrain->draw(model_mat_location, aux, trans);
 
 		for (int i = 0; i < bullets.size(); i++){
@@ -247,7 +260,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height){
 	glViewport(0, 0, width, height);
 }
 
-void processInput(GLFWwindow *window, btRigidBody *player1,btRigidBody *player2,btRigidBody *player3){
+void processInput(GLFWwindow *window, btRigidBody *player1,btRigidBody *player2,btRigidBody *player3,btRigidBody *player4){
 	/*------------------UI------------------*/
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
@@ -313,6 +326,19 @@ void processInput(GLFWwindow *window, btRigidBody *player1,btRigidBody *player2,
 			player3->applyCentralForce(btVector3(0.,0.,-30.0));
 		if (axes[1]>(0.3))
 			player3->applyCentralForce(btVector3(0.,0.,30.0));
+	}
+	if(glfwJoystickPresent(GLFW_JOYSTICK_4)){
+		const float *axes = glfwGetJoystickAxes(GLFW_JOYSTICK_4, &axesCount);
+		if (axes[5]!=-1)
+			shootBullet(alien4);
+		if (axes[0]<(-0.3))
+			player4->applyCentralForce(btVector3(-30.0,0.,0.));
+		if (axes[0]>(0.3))
+			player4->applyCentralForce(btVector3(30.0,0.,0.));
+		if (axes[1]<(-0.3))
+			player4->applyCentralForce(btVector3(0.,0.,-30.0));
+		if (axes[1]>(0.3))
+			player4->applyCentralForce(btVector3(0.,0.,30.0));
 	}
 }
 
@@ -381,6 +407,8 @@ void reducirCooldowns(){
 		(alien2->cooldown)--;
 	if (alien3->cooldown > 0)
 		(alien3->cooldown)--;
+	if (alien4->cooldown > 0)
+		(alien4->cooldown)--;
 }
 
 
@@ -417,10 +445,16 @@ void checkAliensHP(){ //mata al alien si este llega a 0 hp
 		world->removeRigidBody(alien2->getBody());
 	}
 	if (alien3->hp == 0){
-		std::cout << "alien 2 muere" << std::endl;
+		std::cout << "alien 3 muere" << std::endl;
 		alien3->alive = false;
 		alien3->hp = -1;
 		world->removeRigidBody(alien3->getBody());
+	}
+	if (alien4->hp == 0){
+		std::cout << "alien 4 muere" << std::endl;
+		alien4->alive = false;
+		alien4->hp = -1;
+		world->removeRigidBody(alien4->getBody());
 	}
 		
 }
