@@ -385,15 +385,34 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset){
 
 void shootBullet(alien* shooter){ //mas tarde mover este metodo  a la clase alien. shooter = el alien que dispara
 	if (!(shooter->cooldown)){ //ver si el disparo de este alien esta en enfriamiento
-		bala *new_bullet = new bala((char*)"mesh/Alien.obj");
-		new_bullet->createRigidBody(
-			new btSphereShape(btScalar(0.3f)),
-			shooter->getBody()->getCenterOfMassPosition() + (shooter->getBody()->getLinearVelocity().normalized() * 1.5), //dispara en la direccion de movimiento de shooter
-			1.0f); //mass
+		bala *new_bullet = new bala((char*)"mesh/balaxx.obj");
+
+		bool en_movimiento = shooter->getBody()->getLinearVelocity().norm() > 0.01;
+
+		//Cuando shooter esté quieto o prácticamente quieto, dispara para la derecha nomás, en lugar de volverse loco y tirar segfault xd
+
+		if (en_movimiento){	
+			new_bullet->createRigidBody(
+				new btSphereShape(btScalar(0.3f)),
+				shooter->getBody()->getCenterOfMassPosition() + (shooter->getBody()->getLinearVelocity().normalized() * 1.5), //dispara en la direccion de movimiento de shooter
+				1.0f); //mass
+		}
+		else {
+			new_bullet->createRigidBody(
+				new btSphereShape(btScalar(0.3f)),
+				shooter->getBody()->getCenterOfMassPosition() + btVector3(1.5 ,0,0), //dispara en la direccion de movimiento de shooter
+				1.0f); //mass
+		}
+
 		bullets.push_back(new_bullet); //agrega la bala al vector de balas
 		new_bullet->getBody()->setUserPointer(bullets[bullets.size()-1]);
 		new_bullet->getBody()->setCollisionFlags(new_bullet->getBody()->getCollisionFlags() | btCollisionObject::CF_CUSTOM_MATERIAL_CALLBACK);
-		new_bullet->getBody()->setLinearVelocity(15 * shooter->getBody()->getLinearVelocity().normalized()); 
+
+		if (en_movimiento)
+			new_bullet->getBody()->setLinearVelocity(15 * shooter->getBody()->getLinearVelocity().normalized()); 
+		else
+			new_bullet->getBody()->setLinearVelocity(btVector3(15, 0, 0));
+
 		world->addRigidBody(new_bullet->getBody()); //agrega la bala al mundo
 		new_bullet->getBody()->setGravity(btVector3(0,0,0)); //para que las balas no caigan. OBS: esto debe ir despues de agregarse la bala al mundo
 		shooter->cooldown = 30; //ponemos el disparo en cd
