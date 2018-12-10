@@ -32,7 +32,7 @@
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
-void processInput(GLFWwindow *window, btRigidBody *player);
+void processInput(GLFWwindow *window, btRigidBody *player1,btRigidBody *player2,btRigidBody *player3);
 void shootBullet(alien* shooter);
 void reducirCooldowns();
 void checkAliensHP();
@@ -63,7 +63,7 @@ btDiscreteDynamicsWorld *world; //lo usaremos para acceder al mundo de forma glo
 std::vector<bala*> bullets; //vector de balas
 alien *alien1; //lo usaremos para acceder al alien de forma global, está aquí temporalmente para programar y debugear
 alien *alien2; //otro alien, para probar
-alien *alien3;
+alien *alien3; //nos gusta crear aliens
 
 
 int main(){
@@ -76,21 +76,18 @@ int main(){
 	/*--Perspective---*/
 	glm::mat4 projection = glm::perspective(glm::radians(fov), (float)g_gl_width / (float)g_gl_height, 0.1f, 10000.0f);
   	glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
-
 	int view_mat_location = glGetUniformLocation(shader_programme, "view");
 	glUseProgram(shader_programme);
 	glUniformMatrix4fv(view_mat_location, 1, GL_FALSE, &view[0][0]);
 	int proj_mat_location = glGetUniformLocation(shader_programme, "proj");
 	glUseProgram(shader_programme);
 	glUniformMatrix4fv(proj_mat_location, 1, GL_FALSE, &projection[0][0]);
-
 	int model_mat_location = glGetUniformLocation(shader_programme, "model");
-
 	glfwSetFramebufferSizeCallback(g_window, framebuffer_size_callback);
 	glfwSetCursorPosCallback(g_window, mouse_callback);
 	glfwSetScrollCallback(g_window, scroll_callback);
 	glfwSetInputMode(g_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-		/*----------*/
+	/*----------*/
 
 	/*---Mesh and Textures---*/
 	alien1 = new alien((char*)"mesh/Alien.obj");
@@ -99,8 +96,7 @@ int main(){
 	piso *terrain = new piso((char*)"mesh/MapaSimple.obj");
 	terrain->load_texture("textures/mars4k.jpg");
 
-	/*INIT ALIENS*/
-
+	/*Init Aliens*/
 	alien1->alive = true;
 	alien1->cooldown = 0;
 	alien1->hp = 3;
@@ -170,7 +166,7 @@ int main(){
 
 	GLuint cube_map_texture;
 	textureSkyBox(cube_map_texture);
-		/*----------*/
+	/*----------*/
 
 	/*---Debuger---*/
 	GLDebugDrawer *debug = new GLDebugDrawer();
@@ -189,24 +185,8 @@ int main(){
 		lastFrame = currentFrame;
 
 		/*---Input---*/
-		processInput(g_window, alien1->getBody());
-
-			/*---JoystickTEST-----GastonciñoTrabajan2*/
-			/*
-			int present = glfwJoystickPresent(GLFW_JOYSTICK_1);
-			std::cout<<"Joystick1 status: "<<present<<std::endl;
-			if(present==1){
-				int axesCount;
-				const float *axes = glfwGetJoystickAxes(GLFW_JOYSTICK_1, &axesCount);
-				std::cout<<"Number of axes available: "<<axesCount<<std::endl;
-				std::cout<<"Left Stick X Axis: "<<axes[0]<<std::endl;
-				std::cout<<"Left Stick Y Axis: "<<axes[1]<<std::endl;
-				std::cout<<"Right Stick X Axis: "<<axes[4]<<std::endl;
-				std::cout<<"Right Stick Y Axis: "<<axes[3]<<std::endl;
-				std::cout<<"Left Trigger Axis: "<<axes[2]<<std::endl;
-				std::cout<<"Right Trigger Axis: "<<axes[5]<<std::endl;
-			}*/
-			/*---------------*/
+		processInput(g_window, alien1->getBody(),alien2->getBody(),alien3->getBody());
+		/*---------------*/
 
 		/*---World---*/
 		glUseProgram (shader_programme);
@@ -238,9 +218,6 @@ int main(){
 			bullets[i]->draw(model_mat_location, aux, trans);
 		}
 
-
-		
-
 		/*---SkyBox Programme---*/
 		glUseProgram(skybox_shader);
 		glDepthMask(GL_FALSE);
@@ -251,13 +228,13 @@ int main(){
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 		glDepthMask(GL_TRUE);
 		glUniformMatrix4fv(view_skybox, 1, GL_FALSE, &view[0][0]);
-			/*----------*/
+		/*----------*/
 
 		/*---World Debug---*/
 		dynamicsWorld->debugDrawWorld();
 		debug->drawLines();
-
 		/*----------*/
+
 		glfwSwapBuffers(g_window);
 		glfwPollEvents();
 	}
@@ -270,7 +247,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height){
 	glViewport(0, 0, width, height);
 }
 
-void processInput(GLFWwindow *window, btRigidBody *player){
+void processInput(GLFWwindow *window, btRigidBody *player1,btRigidBody *player2,btRigidBody *player3){
 	/*------------------UI------------------*/
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
@@ -286,38 +263,56 @@ void processInput(GLFWwindow *window, btRigidBody *player){
 		cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
 	/*--------------PlayerKeyboard------------*/
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-		player->applyCentralForce(btVector3(0.,0.,-30.0));
+		player1->applyCentralForce(btVector3(0.,0.,-30.0));
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-		player->applyCentralForce(btVector3(0.,0.,30.0));
+		player1->applyCentralForce(btVector3(0.,0.,30.0));
 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-		player->applyCentralForce(btVector3(-30.0,0.,0.));
+		player1->applyCentralForce(btVector3(-30.0,0.,0.));
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-		player->applyCentralForce(btVector3(30.0,0.,0.));
-
+		player1->applyCentralForce(btVector3(30.0,0.,0.));
 	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
 		shootBullet(alien1); //a la funcion shootBullet se le pasa un alien* que determina quién está disparando 
 	
 	/*-----------JoystickInputs----------*/
-	int present = glfwJoystickPresent(GLFW_JOYSTICK_1);
-	if(present==1){
-		int axesCount;
+	int axesCount;
+	if(glfwJoystickPresent(GLFW_JOYSTICK_1)){
 		const float *axes = glfwGetJoystickAxes(GLFW_JOYSTICK_1, &axesCount);
+		if (axes[5]!=-1)
+			shootBullet(alien1);
 		if (axes[0]<(-0.3))
-			player->applyCentralForce(btVector3(-30.0,0.,0.));
+			player1->applyCentralForce(btVector3(-30.0,0.,0.));
 		if (axes[0]>(0.3))
-			player->applyCentralForce(btVector3(30.0,0.,0.));
+			player1->applyCentralForce(btVector3(30.0,0.,0.));
 		if (axes[1]<(-0.3))
-			player->applyCentralForce(btVector3(0.,0.,-30.0));
+			player1->applyCentralForce(btVector3(0.,0.,-30.0));
 		if (axes[1]>(0.3))
-			player->applyCentralForce(btVector3(0.,0.,30.0));
-		if (axes[4]>(0.3))
-			cameraPos -= cameraSpeed * cameraFront;
-		if (axes[4]<(-0.3))
-			cameraPos += cameraSpeed * cameraFront;
-		if (axes[3]>(0.3))
-			cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
-		if (axes[3]<(-0.3))
-			cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+			player1->applyCentralForce(btVector3(0.,0.,30.0));
+	}
+	if(glfwJoystickPresent(GLFW_JOYSTICK_2)){
+		const float *axes = glfwGetJoystickAxes(GLFW_JOYSTICK_2, &axesCount);
+		if (axes[5]!=-1)
+			shootBullet(alien2);
+		if (axes[0]<(-0.3))
+			player2->applyCentralForce(btVector3(-30.0,0.,0.));
+		if (axes[0]>(0.3))
+			player2->applyCentralForce(btVector3(30.0,0.,0.));
+		if (axes[1]<(-0.3))
+			player2->applyCentralForce(btVector3(0.,0.,-30.0));
+		if (axes[1]>(0.3))
+			player2->applyCentralForce(btVector3(0.,0.,30.0));
+	}
+	if(glfwJoystickPresent(GLFW_JOYSTICK_3)){
+		const float *axes = glfwGetJoystickAxes(GLFW_JOYSTICK_3, &axesCount);
+		if (axes[5]!=-1)
+			shootBullet(alien3);
+		if (axes[0]<(-0.3))
+			player3->applyCentralForce(btVector3(-30.0,0.,0.));
+		if (axes[0]>(0.3))
+			player3->applyCentralForce(btVector3(30.0,0.,0.));
+		if (axes[1]<(-0.3))
+			player3->applyCentralForce(btVector3(0.,0.,-30.0));
+		if (axes[1]>(0.3))
+			player3->applyCentralForce(btVector3(0.,0.,30.0));
 	}
 }
 
