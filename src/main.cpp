@@ -43,6 +43,8 @@ int g_gl_width  =  1080;
 int g_gl_height =  800;
 GLFWwindow *g_window = NULL;
 
+int cant_player = 4;
+
 /*---Camera Properties---*/
 glm::vec3 cameraPos   = glm::vec3(0.0f, 12.0f, 15.0f);
 glm::vec3 cameraFront = glm::vec3(0.0f, -2.0f, -1.0f);
@@ -450,11 +452,15 @@ bool contactAddedCallbackBullet(btManifoldPoint& cp, const btCollisionObjectWrap
 }
 
 void checkAliensHP(){ //mata al alien si este llega a 0 hp
+
+
+
 	if (alien1->hp == 0){
 		std::cout << "alien 1 muere" << std::endl;
 		alien1->alive = false;
 		alien1->hp = -1;
 		world->removeRigidBody(alien1->getBody());
+		cant_player--;
 	}
 		
 	if (alien2->hp == 0){
@@ -462,21 +468,33 @@ void checkAliensHP(){ //mata al alien si este llega a 0 hp
 		alien2->alive = false;
 		alien2->hp = -1;
 		world->removeRigidBody(alien2->getBody());
+		cant_player--;
 	}
 	if (alien3->hp == 0){
 		std::cout << "alien 3 muere" << std::endl;
 		alien3->alive = false;
 		alien3->hp = -1;
 		world->removeRigidBody(alien3->getBody());
+		cant_player--;
 	}
 	if (alien4->hp == 0){
 		std::cout << "alien 4 muere" << std::endl;
 		alien4->alive = false;
 		alien4->hp = -1;
 		world->removeRigidBody(alien4->getBody());
+		cant_player--;
 	}
-		
+	if (cant_player == 1){
+		std::cout << "GAME OVER" << std::endl;
+		if(alien1->alive) std::cout << "VICTORY ROYALE PLAYER 1\n";
+		if(alien2->alive) std::cout << "WINNER WINNER CHIKEN DINNER PLAYER 2\n";
+		if(alien3->alive) std::cout << "YOUR ARE A WINNER PLAYER 3\n";
+		if(alien4->alive) std::cout << "UMA DELICIA PLAYER 4\n";
+		glfwSetWindowShouldClose(g_window, true);
+	}
 }
+
+
 
 
 
