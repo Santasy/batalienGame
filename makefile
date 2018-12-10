@@ -4,7 +4,7 @@ INC=-I/usr/include/bullet
 EXEC=bin/batalien
 
 all:
-	g++ ${SRC} ${INC} ${LIBS} -o ${EXEC}
+	g++ ${SRC} -std=c++11 ${INC} ${LIBS} -o ${EXEC}
 
 clear:
 	rm bin/*

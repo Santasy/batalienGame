@@ -96,7 +96,9 @@ int main(){
 	terrain->load_texture("textures/mars4k.jpg");
 
 	alien1->cooldown = 0;
+	alien1->hp = 3;
 	alien2->cooldown = 0;
+	alien2->hp = 3;
 
 	/*---Physic Compound---*/
 
@@ -339,14 +341,15 @@ void shootBullet(alien* shooter){ //mas tarde mover este metodo  a la clase alie
 		bala *new_bullet = new bala((char*)"mesh/Alien.obj");
 		new_bullet->createRigidBody(
 			new btSphereShape(btScalar(0.3f)),
-			shooter->getBody()->getCenterOfMassPosition() + (shooter->getBody()->getLinearVelocity().normalized() * 2), //dispara en la direccion de movimiento de shooter
+			shooter->getBody()->getCenterOfMassPosition() + (shooter->getBody()->getLinearVelocity().normalized() * 1.5), //dispara en la direccion de movimiento de shooter
 			1.0f); //mass
 		bullets.push_back(new_bullet); //agrega la bala al vector de balas
+		new_bullet->getBody()->setUserPointer(bullets[bullets.size()-1]);
 		new_bullet->getBody()->setCollisionFlags(new_bullet->getBody()->getCollisionFlags() | btCollisionObject::CF_CUSTOM_MATERIAL_CALLBACK);
 		new_bullet->getBody()->setLinearVelocity(15 * shooter->getBody()->getLinearVelocity().normalized()); 
 		world->addRigidBody(new_bullet->getBody()); //agrega la bala al mundo
 		new_bullet->getBody()->setGravity(btVector3(0,0,0)); //para que las balas no caigan. OBS: esto debe ir despues de agregarse la bala al mundo
-		shooter->cooldown = 60; //ponemos el disparo en cd, 1 seg
+		shooter->cooldown = 20; //ponemos el disparo en cd
 	}
 }
 
@@ -355,12 +358,32 @@ void reducirCooldowns(){
 		(alien1->cooldown)--;
 	if (alien2->cooldown > 0)
 		(alien2->cooldown)--;
-
 }
 
 
 //esta funcion se llama cuando hay colision de alguna bala con otro objeto
 bool contactAddedCallbackBullet(btManifoldPoint& cp, const btCollisionObjectWrapper * colObj0, int partId0, int index0, const btCollisionObjectWrapper * colObj1, int partId1, int index1){
-	std::cout << "collision" << std::endl;
+	std::cout << "COLISIÓN" << std::endl;
+	
+	bala* bala_atacante = ((bala*)(colObj1->getCollisionObject()->getUserPointer()));
+
+	world->removeRigidBody(bala_atacante->getBody());
+
+	auto it = std::find(bullets.begin(), bullets.end(), bala_atacante); 
+   	if (it != bullets.end()) { bullets.erase(it); } //borra la bala del vector de balas
+
+	//alien* alien_victima = ((alien*)(colObj0->getCollisionObject()->getUserPointer()));
+	//alien_victima->hp--;
+	//std::cout << "HP DEL ALIEN VICTIMA: " << alien_victima->hp << std::endl;
+	
+	
 	return false;
 }
+
+
+
+
+
+
+
+
