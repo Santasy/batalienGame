@@ -242,7 +242,7 @@ int main(){
 		glBindVertexArray(vaosky);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 		glDepthMask(GL_TRUE);
-		glUniformMatrix4fv(view_skybox, 1, GL_FALSE, &view[0][0]);
+		glUniformMatrix4fv(view_skybox, 1, GL_FALSE, &glm::mat4(glm::mat3(view))[0][0]);
 		/*----------*/
 
 		/*---World Debug---*/

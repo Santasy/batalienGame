@@ -68,7 +68,7 @@ void mesh::createRigidBody(btCollisionShape *b, btVector3 origin, float m){
 	this->btT.setIdentity();
 	this->btT.setOrigin(origin);
 	this->mass = *(new btScalar(m));
-	this->localInertia = *(new btVector3(1, 0, 0));
+	this->localInertia = *(new btVector3(-1, -1, -1));
 	this->isDynamic = (m != 0.0f);
 	if(this->isDynamic) this->btCS->calculateLocalInertia(this->mass, this->localInertia);
 	this->motionState = new btDefaultMotionState(this->btT);

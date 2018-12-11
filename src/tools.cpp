@@ -110,3 +110,56 @@ bool load_mesh(const char *file_name, GLuint *vao, int *point_count){
 	printf("Mesh loaded\n");
 	return true;
 }
+
+bool load_collider(const char *file_name, int *point_count){
+	const aiScene *scene = aiImportFile(file_name, aiProcess_Triangulate);
+	if(!scene){
+		fprintf(stderr, "ERROR: reading mesh %s\n", file_name);
+		return false;
+	}
+	const aiMesh *mesh = scene->mMeshes[0];
+	printf(" %i vertices in mesh[0]\n", mesh->mNumVertices);
+	
+	*point_count = mesh->mNumVertices;
+	
+	GLfloat* points = NULL;
+	GLfloat* normals = NULL;
+	GLfloat* texcoords = NULL;
+
+	if(mesh->HasPositions()){
+		for (int i = 0; i < *point_count; i++) {
+			const aiVector3D *vp = &(mesh->mVertices[i]);
+			points[i * 3] = (GLfloat)vp->x;
+			points[i * 3 + 1] = (GLfloat)vp->y;
+			points[i * 3 + 2] = (GLfloat)vp->z;
+		}
+	}
+
+	if (mesh->HasTangentsAndBitangents ()) {
+		// NB: could store/print tangents here
+	}
+
+	btTriangleMesh* mesh = new btTriangleMesh();
+        for (int i=0; i < vertexCount; i += 3)
+        {
+        	const aiVector3D *vp = &(mesh->mVertices[i]);
+			points[i] = (GLfloat)vp->x;
+			points[i+ 1] = (GLfloat)vp->y;
+			points[i+ 2] = (GLfloat)vp->z;
+
+
+            Vertex v1 = vertices[i];
+            Vertex v2 = vertices[i+1];
+            Vertex v3 = vertices[i+2];
+            
+            btVector3 bv1 = btVector3(v1.Position[0], v1.Position[1], v1.Position[2]);
+            btVector3 bv2 = btVector3(v2.Position[0], v2.Position[1], v2.Position[2]);
+            btVector3 bv3 = btVector3(v3.Position[0], v3.Position[1], v3.Position[2]);
+            
+            mesh->addTriangle(bv1, bv2, bv3);
+        }
+	
+	aiReleaseImport(scene);
+	printf("Mesh loaded\n");
+	return true;
+}
