@@ -111,7 +111,7 @@ bool load_mesh(const char *file_name, GLuint *vao, int *point_count){
 	return true;
 }
 
-bool load_collider(const char *file_name, int *point_count){
+/*bool load_collider(const char *file_name, int *point_count){
 	const aiScene *scene = aiImportFile(file_name, aiProcess_Triangulate);
 	if(!scene){
 		fprintf(stderr, "ERROR: reading mesh %s\n", file_name);
@@ -162,4 +162,4 @@ bool load_collider(const char *file_name, int *point_count){
 	aiReleaseImport(scene);
 	printf("Mesh loaded\n");
 	return true;
-}
+}*/
