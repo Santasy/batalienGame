@@ -287,6 +287,23 @@ void processInput(GLFWwindow *window, btRigidBody *player1,btRigidBody *player2,
 		player1->applyCentralForce(btVector3(30.0,0.,0.));
 	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
 		shootBullet(alien1); //a la funcion shootBullet se le pasa un alien* que determina quién está disparando 
+
+
+	//controles teclado player 2 for debugging purposes
+
+	if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS)
+		player2->applyCentralForce(btVector3(0.,0.,-30.0));
+	if (glfwGetKey(window, GLFW_KEY_G) == GLFW_PRESS)
+		player2->applyCentralForce(btVector3(0.,0.,30.0));
+	if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS)
+		player2->applyCentralForce(btVector3(-30.0,0.,0.));
+	if (glfwGetKey(window, GLFW_KEY_H) == GLFW_PRESS)
+		player2->applyCentralForce(btVector3(30.0,0.,0.));
+	if (glfwGetKey(window, GLFW_KEY_Y) == GLFW_PRESS)
+		shootBullet(alien2); //a la funcion shootBullet se le pasa un alien* que determina quién está disparando 
+
+
+
 	
 	/*-----------JoystickInputs----------*/
 	int axesCount;
@@ -385,15 +402,15 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset){
 		fov = 45.0f;
 }
 
-void shootBullet(alien* shooter){ //mas tarde mover este metodo  a la clase alien. shooter = el alien que dispara
-	if (!(shooter->cooldown)){ //ver si el disparo de este alien esta en enfriamiento
+void shootBullet(alien* shooter){ // shooter = el alien que dispara
+	if ((!(shooter->cooldown) && (shooter->hp)>0)){ //ver si el disparo de este alien esta en enfriamiento
 		bala *new_bullet = new bala((char*)"mesh/balaxx.obj");
 
 		bool en_movimiento = shooter->getBody()->getLinearVelocity().norm() > 0.01;
 
 		//Cuando shooter esté quieto o prácticamente quieto, dispara para la derecha nomás, en lugar de volverse loco y tirar segfault xd
 
-		if (en_movimiento){	
+		if (en_movimiento){
 			new_bullet->createRigidBody(
 				new btSphereShape(btScalar(0.3f)),
 				shooter->getBody()->getCenterOfMassPosition() + (shooter->getBody()->getLinearVelocity().normalized() * 1.5), //dispara en la direccion de movimiento de shooter
@@ -443,10 +460,12 @@ bool contactAddedCallbackBullet(btManifoldPoint& cp, const btCollisionObjectWrap
 
 	auto it = std::find(bullets.begin(), bullets.end(), bala_atacante); 
    	if (it != bullets.end()) { bullets.erase(it); } //borra la bala del vector de balas
+	
 
 	alien* alien_victima = ((alien*)(colObj0->getCollisionObject()->getUserPointer()));
 	alien_victima->hp--;
 	std::cout << "HP DEL ALIEN VICTIMA: " << alien_victima->hp << std::endl;
+
 
 	return false;
 }
