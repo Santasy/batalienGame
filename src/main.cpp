@@ -103,15 +103,19 @@ int main(){
 	/*Init Aliens*/
 	alien1->alive = true;
 	alien1->cooldown = 0;
+	alien1->esalien = true;
 	alien1->hp = 3;
 	alien2->alive = true;
 	alien2->cooldown = 0;
+	alien2->esalien = true;
 	alien2->hp = 3;
 	alien3->alive = true;
 	alien3->cooldown = 0;
+	alien3->esalien = true;
 	alien3->hp = 3;
 	alien4->alive = true;
 	alien4->cooldown = 0;
+	alien4->esalien = true;
 	alien4->hp = 3;
 
 	/*---Physic Compound---*/
@@ -461,10 +465,23 @@ bool contactAddedCallbackBullet(btManifoldPoint& cp, const btCollisionObjectWrap
 	auto it = std::find(bullets.begin(), bullets.end(), bala_atacante); 
    	if (it != bullets.end()) { bullets.erase(it); } //borra la bala del vector de balas
 	
+	if (((mesh*)(colObj0->getCollisionObject()->getUserPointer()))->esalien){
+		std::cout << "CHOQUEEEE ALIEEEEEN" << std::endl;
+		alien* alien_victima = ((alien*)(colObj0->getCollisionObject()->getUserPointer()));
+		alien_victima->hp--;
+		std::cout << "HP DEL ALIEN VICTIMA: " << alien_victima->hp << std::endl;
+	}
+	else {
+		std::cout << "CHOQUEEEE BALAAAAAA" << std::endl;
+		bala* otra_bala = ((bala*)(colObj0->getCollisionObject()->getUserPointer()));
+		world->removeRigidBody(otra_bala->getBody());
+		
+		auto it = std::find(bullets.begin(), bullets.end(), otra_bala); 
+   		if (it != bullets.end()) { bullets.erase(it); } //borra la bala del vector de balas
+	}
 
-	alien* alien_victima = ((alien*)(colObj0->getCollisionObject()->getUserPointer()));
-	alien_victima->hp--;
-	std::cout << "HP DEL ALIEN VICTIMA: " << alien_victima->hp << std::endl;
+	//SI CHOCAN 2 BALAS SE BORRAN LAS 2
+	
 
 
 	return false;

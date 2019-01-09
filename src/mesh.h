@@ -34,7 +34,7 @@ class mesh{
 		glm::vec3 getPosition();
 		glm::vec3 getRotation();
 		char* getFilename();
-		btRigidBody* getBody(); 
+		btRigidBody* getBody();
 
 		/*---Sets---*/
 		void setVao(GLuint vao);
@@ -52,6 +52,8 @@ class mesh{
 
 		/*---TODO---*/
 		void setPosition(glm::vec3 pos);
+
+		bool esalien = false;
 };
 
 #endif
