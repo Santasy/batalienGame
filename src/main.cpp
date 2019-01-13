@@ -178,8 +178,20 @@ int main(){
 	debug->setProj(&projection);
 	dynamicsWorld->setDebugDrawer(debug);
 
+	/*---Start Window---*/
+    
+    glm::mat4 aux;
+    btTransform trans;
+	bool start = false;
+    printf("Presionar enter para comenzar el juego.\n");
+	while(!start){
+        if(glfwGetKey(g_window, GLFW_KEY_ENTER) == GLFW_PRESS)
+            start = true;
+		glfwSwapBuffers(g_window);
+		glfwPollEvents();
+	}
+
 	/*---Main Loop---*/
-	glm::mat4 aux;
 	while (!glfwWindowShouldClose(g_window)){
 		/*---Frames---*/
 		float currentFrame = glfwGetTime();
@@ -205,9 +217,7 @@ int main(){
 		reducirCooldowns();
 		checkAliensHP();
 		
-		/*---Draws---*/
-		btTransform trans;
-
+// 		/*---Draws---*/
 		if (alien1->alive)
 			alien1->draw(model_mat_location, aux, trans);
 		if (alien2->alive)
@@ -244,6 +254,7 @@ int main(){
 	}
 	
 	glfwTerminate();
+    printf("-----Fin del juego-----\n");
 	return 0;
 }
 
@@ -351,6 +362,7 @@ void processInput(GLFWwindow *window, btRigidBody *player1,btRigidBody *player2,
 }
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos){
+    /*
 	if(firstMouse){
 		lastX = xpos;
 		lastY = ypos;
@@ -380,6 +392,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos){
 	front.y = sin(glm::radians(pitch));
 	front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
 	cameraFront = glm::normalize(front);
+	*/
 }
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset){
@@ -474,9 +487,9 @@ bool contactAddedCallbackBullet(btManifoldPoint& cp, const btCollisionObjectWrap
 
 void checkAliensHP(){ //mata al alien si este llega a 0 hp
 
+    btVector3 pos = alien1->getBody()->getCenterOfMassPosition();
 
-
-	if (alien1->hp == 0){
+	if (alien1->alive && (alien1->hp == 0 || alien1->getBody()->getCenterOfMassPosition()[1] < -100.0f)){
 		std::cout << "alien 1 muere" << std::endl;
 		alien1->alive = false;
 		alien1->hp = -1;
@@ -484,21 +497,21 @@ void checkAliensHP(){ //mata al alien si este llega a 0 hp
 		cant_player--;
 	}
 		
-	if (alien2->hp == 0){
+	if (alien2->alive && (alien2->hp == 0 || alien2->getBody()->getCenterOfMassPosition()[1] < -100.0f)){
 		std::cout << "alien 2 muere" << std::endl;
 		alien2->alive = false;
 		alien2->hp = -1;
 		world->removeRigidBody(alien2->getBody());
 		cant_player--;
 	}
-	if (alien3->hp == 0){
+	if (alien3->alive && (alien3->hp == 0 || alien3->getBody()->getCenterOfMassPosition()[1] < -100.0f)){
 		std::cout << "alien 3 muere" << std::endl;
 		alien3->alive = false;
 		alien3->hp = -1;
 		world->removeRigidBody(alien3->getBody());
 		cant_player--;
 	}
-	if (alien4->hp == 0){
+	if (alien4->alive && (alien4->hp == 0 || alien4->getBody()->getCenterOfMassPosition()[1] < -100.0f)){
 		std::cout << "alien 4 muere" << std::endl;
 		alien4->alive = false;
 		alien4->hp = -1;
