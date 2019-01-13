@@ -82,9 +82,14 @@ void mesh::draw(int matloc, glm::mat4 &aux, btTransform &trans){
 	trans.getOpenGLMatrix(&aux[0][0]);
 	this->setModelMatrix(aux);
 
+	glActiveTexture(GL_TEXTURE0);
+    glBindVertexArray(this->getVao());
+    glBindTexture(GL_TEXTURE_2D, tex);
+    glPointSize(3.0);
+
 	glUniformMatrix4fv(matloc, 1, GL_FALSE, &this->modelMatrix[0][0]);
+    glDrawArrays(GL_TRIANGLES, 0, this->getNumVertices());
 	glBindVertexArray(this->getVao());
-	glDrawArrays(GL_TRIANGLES, 0, this->getNumVertices());
 }
 
 bool mesh::load_texture (const char* file_name) {

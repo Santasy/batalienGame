@@ -99,24 +99,10 @@ int main(){
 	alien4 = new alien((char*)"mesh/Alien.obj");
 	piso *terrain = new piso((char*)"mesh/MapaSimple.obj");
 	terrain->load_texture("textures/mars4k.jpg");
-
-	/*Init Aliens*/
-	alien1->alive = true;
-	alien1->cooldown = 0;
-	alien1->esalien = true;
-	alien1->hp = 3;
-	alien2->alive = true;
-	alien2->cooldown = 0;
-	alien2->esalien = true;
-	alien2->hp = 3;
-	alien3->alive = true;
-	alien3->cooldown = 0;
-	alien3->esalien = true;
-	alien3->hp = 3;
-	alien4->alive = true;
-	alien4->cooldown = 0;
-	alien4->esalien = true;
-	alien4->hp = 3;
+	alien1->load_texture("textures/alienskin.jpg");
+	alien2->load_texture("textures/alienskin.jpg");
+	alien3->load_texture("textures/alienskin.jpg");
+	alien4->load_texture("textures/alienskin.jpg");
 
 	/*---Physic Compound---*/
 
@@ -193,7 +179,6 @@ int main(){
 	dynamicsWorld->setDebugDrawer(debug);
 
 	/*---Main Loop---*/
-
 	glm::mat4 aux;
 	while (!glfwWindowShouldClose(g_window)){
 		/*---Frames---*/
